@@ -8,8 +8,9 @@
     <div
       class="preview-img tw-absolute tw-z-40"
       :style="{
-        top: show.rect.top + 'px',
-        left: show.rect.left + 'px',
+        top: isChanged ? '50%' : show.rect.top + 'px',
+        left: isChanged ? '50%' : show.rect.left + 'px',
+        transform: isChanged ? 'translate(-50%, -50%)' : '',
       }"
     >
       <img
@@ -42,7 +43,7 @@
         </div>
       </div>
     </v-hover>
-    <v-hover v-slot:default="{ hover }" v-if="hasPrev">
+    <v-hover v-slot:default="{ hover }" v-if="hasNext">
       <div
         class="right-arrow tw-absolute tw-cursor-pointer tw-z-10"
         style="right: 0;top: 0; width: 33.3333%;bottom: 0;"
@@ -63,7 +64,7 @@
 </template>
 <script>
 import { mapState } from 'vuex'
-import { computedPosition, computedTransform } from '@/utils/preview'
+import { computedPosition } from '@/utils/preview'
 export default {
   computed: {
     ...mapState('picture', ['show']),
@@ -85,13 +86,7 @@ export default {
         : -1
     },
     hasPrev() {
-      const current = this.$store.state.picture.currentViewIndex
-      const data = this.$store.state.picture.data
-      return current.index > 0
-        ? data[current.section].data[current.index - 1]
-        : current.section > 0
-        ? data[current.section - 1][data[current.section - 1].data.length - 1]
-        : false
+      return this.prevIndex > -1 && this.prevSection > -1
     },
     nextIndex() {
       const current = this.$store.state.picture.currentViewIndex
@@ -112,13 +107,15 @@ export default {
         : -1
     },
     hasNext() {
-      const current = this.$store.state.picture.currentViewIndex
-      const data = this.$store.state.picture.data
-      return current.index < data[current.section].data.length - 1
-        ? data[current.section].data[current.index + 1]
-        : current.section < data.length - 1
-        ? data[current.section + 1][0]
-        : false
+      return this.nextSection > -1 && this.nextIndex > -1
+    },
+    // 是否切换了图片？
+    isChanged() {
+      return (
+        this.initSection !==
+          this.$store.state.picture.currentViewIndex.section ||
+        this.initIndex !== this.$store.state.picture.currentViewIndex.index
+      )
     },
   },
   data: () => ({
@@ -135,6 +132,8 @@ export default {
     height: 0,
     showWidth: 0,
     showHeight: 0,
+    initSection: -1,
+    initIndex: -1,
   }),
   mounted() {
     this.$set(
@@ -144,15 +143,14 @@ export default {
     )
     this.showWidth = this.show.width
     this.showHeight = this.show.height
-    // gsap.to(this.$data, { duration: 0.1, opacity: 1 })
     this.opacity = 1
     const positionStyle = this.getImagePosition()
     positionStyle.blur = 0
     setTimeout(() => {
       this.positionStyle = positionStyle
     }, 10)
-
-    // gsap.to(this.$data.positionStyle, 0.3, positionStyle).then(() => {})
+    this.initIndex = this.show.index
+    this.initSection = this.show.section
   },
   beforeRouteLeave(to, from, next) {
     setTimeout(() => {
@@ -160,48 +158,39 @@ export default {
     }, 135)
   },
   methods: {
-    getPosition(section, index) {
-      console.log(this.$store.state.picture, section, index)
-      const top =
-        this.$store.state.picture.data[section].top +
-        this.$store.state.picture.data[section].data[index].top -
-        this.$store.state.picture.scrollTop
-      const left = this.$store.state.picture.left
-      const width = this.$store.state.picture.data[section].data[index].width
-      const height = this.$store.state.picture.data[section].data[index].height
-      return {
-        top,
-        left,
-        width,
-        height,
-      }
-    },
     goBack() {
-      // 原始位置
-      const origin = this.$refs['img-container'].getBoundingClientRect()
-      // 新位置
-      const newPosition = this.getPosition(this.show.section, this.show.index)
-      const positionStyle = computedTransform(
-        origin.width,
-        origin.height,
-        origin.top,
-        origin.left,
-        newPosition.width,
-        newPosition.height,
-        newPosition.top,
-        newPosition.left
-      )
-      console.log(this.positionStyle, positionStyle)
-      positionStyle.translateX =
-        this.positionStyle.translateX + positionStyle.translateX
-      positionStyle.translateY =
-        this.positionStyle.translateY + positionStyle.translateY
-      positionStyle.scaleX = this.positionStyle.scaleX / positionStyle.scaleX
-      positionStyle.scaleY = this.positionStyle.scaleY / positionStyle.scaleY
-      console.log(positionStyle)
+      const positionStyle = {
+        translateX: 0,
+        translateY: 0,
+        scaleX: 1,
+        scaleY: 1,
+        blur: 0,
+      }
       this.showTopBar = false
       this.opacity = 0
-      this.positionStyle = positionStyle
+      if (!this.isChanged) {
+        this.positionStyle = positionStyle
+      } else {
+        // 初始时的高度
+        const initTop =
+          this.$store.state.picture.data[this.initSection].top +
+          this.$store.state.picture.data[this.initSection].data[this.initIndex]
+            .top
+        // 新的高度
+        const newTop =
+          this.$store.state.picture.data[this.show.section].top +
+          this.$store.state.picture.data[this.show.section].data[
+            this.show.index
+          ].top
+        this.$store.commit('picture/SET_SCROLL_TOP', newTop - initTop)
+        console.log('需要滚动的值', newTop - initTop)
+        this.positionStyle = {
+          translateX: 0,
+          translateY: 0,
+          scaleX: 0,
+          scaleY: 0,
+        }
+      }
       this.$router.back()
     },
     goNext() {
@@ -215,7 +204,7 @@ export default {
               right: 0,
             },
           },
-          this.hasNext
+          this.$store.state.picture.data[this.nextSection].data[this.nextIndex]
         )
         const rect = this.$refs['img-container'].getBoundingClientRect()
         this.showWidth = rect.width
@@ -245,8 +234,46 @@ export default {
     },
     goPrev() {
       if (this.prevSection > -1 && this.prevIndex > -1) {
-        const data = this.$store.state.picture[this.prevSection][this.prevIndex]
-        this.$store.commit('picture/SET_SHOW', data)
+        const data = Object.assign(
+          {
+            rect: {
+              top: 0,
+              left: 0,
+              bottom: 0,
+              right: 0,
+            },
+          },
+          this.$store.state.picture.data[this.prevSection].data[this.prevIndex]
+        )
+        const rect = this.$refs['img-container'].getBoundingClientRect()
+        this.showWidth = rect.width
+        this.showHeight = rect.height
+        // eslint-disable-next-line no-unreachable
+        // this.positionStyle = computedPosition(
+        //   rect.width,
+        //   rect.height,
+        //   data._width,
+        //   data._height,
+        //   this.$vuetify.breakpoint.width,
+        //   this.$vuetify.breakpoint.height,
+        //   rect
+        // )
+        this.positionStyle = {
+          translateY: 0,
+          translateX: 0,
+          scaleY: 1,
+          scaleX: 1,
+        }
+        this.$store.commit(
+          'picture/SET_SHOW',
+          Object.assign(
+            {
+              index: this.prevIndex,
+              section: this.prevSection,
+            },
+            data
+          )
+        )
       }
     },
     getImageResetRatio(width, height) {

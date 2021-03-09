@@ -78,6 +78,13 @@ const router = new VueRouter({
   base: process.env.BASE_URL,
   routes,
   scrollBehavior(to, from, savedPosition) {
+    // if (
+    //   to.name === 'Home' &&
+    //   from.name === 'preview' &&
+    //   store.state.picture.scrollTop > 0
+    // ) {
+    //   return { x: 0, y: store.state.picture.scrollTop, behavior: 'smooth' }
+    // }
     if (savedPosition) {
       return savedPosition
     } else {

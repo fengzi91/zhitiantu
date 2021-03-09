@@ -147,13 +147,28 @@ export default {
   },
   beforeRouteEnter(to, from, next) {
     const current = store.state.picture.currentViewIndex
+    const _index = store.state.picture.initIndex
+    const _section = store.state.picture.initSection
+    const _scrollTop = store.state.picture.scrollTop
     next(vm => {
-      console.log('current -> ', current)
       if (current.index > -1) {
         vm.showSections = [current.section]
         vm.$set(vm.data[current.section].data[current.index], 'isShow', true)
-        console.log('要显示的区块', vm.showSections)
         vm.handleSectionsShow = true
+      }
+      if (_section > -1 || _index > -1) {
+        vm.$set(vm.data[_section].data[_index], 'isShow', true)
+      }
+      if (_scrollTop !== 0) {
+        console.log(
+          '最终滚动的值',
+          store.state.picture.initScrollTop + _scrollTop
+        )
+        vm.$vuetify
+          .goTo(store.state.picture.initScrollTop + _scrollTop)
+          .then(() => {
+            store.commit('picture/SET_SCROLL_TOP', 0)
+          })
       }
     })
   },
@@ -178,9 +193,6 @@ export default {
         })
         this.$store.commit('checked/SET_CLEAR')
       }
-    },
-    showSections(newSections) {
-      console.log('跟踪显示数据变化', newSections)
     },
   },
   methods: {
@@ -234,7 +246,6 @@ export default {
         if (this.data.length > 0) {
           top = this.data.reduce((i, n) => i + n.containerHeight, top)
         }
-
         const currentData = {
           key: page,
           data: newData,
@@ -284,19 +295,11 @@ export default {
       ][0].$el.getBoundingClientRect()
       item.url += '?x-bce-process=style/h200'
       // 取当前显示的数据所有 ID
-      console.log(this.data)
-      // const array = this.data.map(i => {
-      //   return i.data.map(n => n.id)
-      // })
-      const scrollTop = document.scrollingElement.scrollTop
-      const { left } = document
-        .getElementById('section-' + i)
-        .getBoundingClientRect()
-      this.$store.commit('picture/SET_POSITION', { scrollTop, left })
       if (this.$store.state.picture.data.length === 0) {
         this.$store.commit('picture/SET_DATA', this.data)
       }
-
+      const scrollTop = document.scrollingElement.scrollTop
+      this.$store.commit('picture/SET_INIT_SCROLL_TOP', scrollTop)
       this.$store.commit(
         'picture/SET_SHOW',
         Object.assign(
@@ -310,8 +313,6 @@ export default {
           item
         )
       )
-
-      console.log('离开的区块为', i)
       this.$router.push({
         name: 'preview',
         params: { id: 'dsaczxcuirewurhsfkjdshfsdjk' },
