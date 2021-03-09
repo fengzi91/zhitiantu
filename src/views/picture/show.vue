@@ -1,16 +1,17 @@
 <template>
   <div class="overlay" :style="`background: rgba(0, 0, 0, ${opacity})`">
-    <v-toolbar color="black" v-if="showTopBar" class="ml-4 tw-z-50">
-      <v-btn icon color="white" @click="goBack" class="tw-absolute tw-z-50">
+    <v-toolbar color="black" v-if="showTopBar" class="ml-4 tw-z-20">
+      <v-btn icon color="white" @click="goBack">
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
     </v-toolbar>
     <div
       class="preview-img tw-absolute tw-z-40"
       :style="{
-        top: isChanged ? '50%' : show.rect.top + 'px',
-        left: isChanged ? '50%' : show.rect.left + 'px',
-        transform: isChanged ? 'translate(-50%, -50%)' : '',
+        top: initBoxRect.top + 'px',
+        left: initBoxRect.left + 'px',
+        width: initBoxRect.width + 'px',
+        height: initBoxRect.height + 'px',
       }"
     >
       <img
@@ -19,8 +20,8 @@
         ref="img-container"
         :style="{
           transform: `translate(${positionStyle.translateX}px, ${positionStyle.translateY}px) scale(${positionStyle.scaleX}, ${positionStyle.scaleY})`,
-          width: `${showWidth}px`,
-          height: `${showHeight}px`,
+          width: `${initBoxRect.width}px`,
+          height: `${initBoxRect.height}px`,
           filter: `blur(${positionStyle.blur}px)`,
           transition: 'transform .135s cubic-bezier(0.0,0.0,0.2,1)',
         }"
@@ -28,8 +29,8 @@
     </div>
     <v-hover v-slot:default="{ hover }" v-if="hasPrev"
       ><div
-        class="left-arrow tw-absolute tw-cursor-pointer  tw-z-10"
-        style="left: 0;top: 0; width: 33.3333%;bottom: 0;"
+        class="left-arrow tw-absolute tw-cursor-pointer  tw-z-50"
+        style="left: 0;top: 0; width: 33.3333%;bottom: 0; margin-top: 76px;"
         @click="goPrev"
       >
         <div
@@ -45,7 +46,7 @@
     </v-hover>
     <v-hover v-slot:default="{ hover }" v-if="hasNext">
       <div
-        class="right-arrow tw-absolute tw-cursor-pointer tw-z-10"
+        class="right-arrow tw-absolute tw-cursor-pointer tw-z-50"
         style="right: 0;top: 0; width: 33.3333%;bottom: 0;"
         @click="goNext"
       >
@@ -64,7 +65,7 @@
 </template>
 <script>
 import { mapState } from 'vuex'
-import { computedPosition } from '@/utils/preview'
+// import { computedPosition } from '@/utils/preview'
 export default {
   computed: {
     ...mapState('picture', ['show']),
@@ -134,6 +135,14 @@ export default {
     showHeight: 0,
     initSection: -1,
     initIndex: -1,
+    initBoxRect: {
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0,
+    },
+    globalTop: 0,
+    globalLeft: 0,
   }),
   mounted() {
     this.$set(
@@ -144,6 +153,16 @@ export default {
     this.showWidth = this.show.width
     this.showHeight = this.show.height
     this.opacity = 1
+    // 初始的缩小后盒子位置
+    this.initBoxRect = {
+      top: this.show.rect.top,
+      left: this.show.rect.left,
+      width: this.show.rect.width,
+      height: this.show.rect.height,
+    }
+    this.globalTop = this.show.rect.top - this.show.top
+    this.globalLeft = this.show.rect.left - this.show.left
+    console.log(this.show.rect, this.initBoxRect)
     const positionStyle = this.getImagePosition()
     positionStyle.blur = 0
     setTimeout(() => {
@@ -183,7 +202,6 @@ export default {
             this.show.index
           ].top
         this.$store.commit('picture/SET_SCROLL_TOP', newTop - initTop)
-        console.log('需要滚动的值', newTop - initTop)
         this.positionStyle = {
           translateX: 0,
           translateY: 0,
@@ -191,6 +209,7 @@ export default {
           scaleY: 0,
         }
       }
+      this.positionStyle = positionStyle
       this.$router.back()
     },
     goNext() {
@@ -209,16 +228,21 @@ export default {
         const rect = this.$refs['img-container'].getBoundingClientRect()
         this.showWidth = rect.width
         this.showHeight = rect.height
-        // eslint-disable-next-line no-unreachable
-        this.positionStyle = computedPosition(
-          rect.width,
-          rect.height,
-          data._width,
-          data._height,
-          this.$vuetify.breakpoint.width,
-          this.$vuetify.breakpoint.height,
-          rect
-        )
+        // 根据偏移 计算新的小盒子位置
+        const current = this.$store.state.picture.data[this.nextSection].data[
+          this.nextIndex
+        ]
+        const initData = this.$store.state.picture.data[this.initSection].data[
+          this.initIndex
+        ]
+        console.log('initData', initData)
+        this.initBoxRect = {
+          top: this.globalTop + current.top,
+          left: this.globalLeft + current.left,
+          width: current.width,
+          height: current.height,
+        }
+        this.positionStyle = this.getImagePosition()
 
         this.$store.commit(
           'picture/SET_SHOW',
@@ -245,25 +269,16 @@ export default {
           },
           this.$store.state.picture.data[this.prevSection].data[this.prevIndex]
         )
-        const rect = this.$refs['img-container'].getBoundingClientRect()
-        this.showWidth = rect.width
-        this.showHeight = rect.height
-        // eslint-disable-next-line no-unreachable
-        // this.positionStyle = computedPosition(
-        //   rect.width,
-        //   rect.height,
-        //   data._width,
-        //   data._height,
-        //   this.$vuetify.breakpoint.width,
-        //   this.$vuetify.breakpoint.height,
-        //   rect
-        // )
-        this.positionStyle = {
-          translateY: 0,
-          translateX: 0,
-          scaleY: 1,
-          scaleX: 1,
+        const current = this.$store.state.picture.data[this.prevSection].data[
+          this.prevIndex
+        ]
+        this.initBoxRect = {
+          top: this.globalTop + current.top,
+          left: this.globalLeft + current.left,
+          width: current.width,
+          height: current.height,
         }
+        this.positionStyle = this.getImagePosition()
         this.$store.commit(
           'picture/SET_SHOW',
           Object.assign(
@@ -308,7 +323,9 @@ export default {
       }
     },
     getImagePosition() {
-      const rect = this.show.rect
+      console.log('rect => ', this.show.rect)
+      console.log('init rect => ', this.initBoxRect)
+      const rect = this.initBoxRect
       // 原图尺寸
       const imageRealWidth = this.show._width
       const imageRealHeight = this.show._height

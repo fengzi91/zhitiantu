@@ -160,15 +160,11 @@ export default {
         vm.$set(vm.data[_section].data[_index], 'isShow', true)
       }
       if (_scrollTop !== 0) {
-        console.log(
-          '最终滚动的值',
-          store.state.picture.initScrollTop + _scrollTop
-        )
-        vm.$vuetify
-          .goTo(store.state.picture.initScrollTop + _scrollTop)
-          .then(() => {
-            store.commit('picture/SET_SCROLL_TOP', 0)
-          })
+        // store.state.picture.initScrollTop + _scrollTop
+        store.commit('picture/SET_SCROLL_TOP', 0)
+        // vm.$vuetify.goTo(0).then(() => {
+        //
+        // })
       }
     })
   },
