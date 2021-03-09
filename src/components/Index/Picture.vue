@@ -19,7 +19,7 @@
           },
         }"
       >
-        <template v-if="showSections.indexOf(i) > -1">
+        <template v-if="showSections.indexOf(i) > -2">
           <template v-for="(item, index) in page.data">
             <v-sheet
               :key="`index-picture-${index}`"
@@ -30,33 +30,12 @@
                 left: item.left + 'px',
                 top: item.top + 'px',
                 contain: 'layout',
-                opacity: item.isShow ? 1 : 0,
-                transition: 'opacity .135s',
               }"
               :class="item.isChecked ? 'tw-bg-blue-400' : ''"
               :color="item.isChecked ? '#e8f0fe' : ''"
               :ref="`show-image-${i}-${index}`"
               @click="check(i, index)"
             >
-              <v-btn
-                icon
-                class="tw-absolute"
-                style="top: 0; left: 0; z-index:9"
-                @click.stop="handleCheck(i, index)"
-              >
-                <v-icon :color="item.isChecked ? 'blue' : 'gray'"
-                  >mdi-check</v-icon
-                >
-              </v-btn>
-              <v-btn
-                icon
-                class="tw-absolute"
-                style="bottom: 0; right: 0; z-index:9"
-                @click.stop="preview(i, index)"
-                v-if="item.isChecked"
-              >
-                <v-icon color="gray">mdi-magnify-plus-outline</v-icon>
-              </v-btn>
               <v-img
                 :src="`${item.url}?x-bce-process=style/h200`"
                 :lazy-src="`${item.url}?x-bce-process=style/h20`"
@@ -69,6 +48,7 @@
             </v-sheet>
           </template>
         </template>
+        <div class="tw-bg-red tw-w-full">{{ i }}</div>
       </div>
     </div>
     <v-container fluid>
@@ -113,10 +93,9 @@ import layoutHelper from '@/utils/justifiedLayout'
 import { debounce } from 'lodash'
 import ShareDialog from '@/components/Share/Dialog'
 import { position } from '@/utils/preview'
-import store from '@/store'
 import { mapGetters } from 'vuex'
 export default {
-  name: 'Home',
+  name: 'IndexPicture',
   components: {
     ShareDialog,
   },
@@ -130,7 +109,6 @@ export default {
     current_page: 1,
     disabledLoad: false,
     showSections: [0],
-    handleSectionsShow: true,
   }),
   computed: {
     ...mapGetters(['checkedLength']),
@@ -145,23 +123,11 @@ export default {
       )
     },
   },
-  beforeRouteEnter(to, from, next) {
-    const current = store.state.picture.currentViewIndex
-    next(vm => {
-      console.log('current -> ', current)
-      if (current.index > -1) {
-        vm.showSections = [current.section]
-        vm.$set(vm.data[current.section].data[current.index], 'isShow', true)
-        console.log('要显示的区块', vm.showSections)
-        vm.handleSectionsShow = true
-      }
-    })
-  },
   created() {
     this.debounceOnIntersect = debounce(this.onIntersect, 200)
   },
   mounted() {
-    this.handleSectionsShow = true
+    console.log('页面加载')
   },
   watch: {
     async '$store.state.global.navigationDrawerMini'() {
@@ -178,9 +144,6 @@ export default {
         })
         this.$store.commit('checked/SET_CLEAR')
       }
-    },
-    showSections(newSections) {
-      console.log('跟踪显示数据变化', newSections)
     },
   },
   methods: {
@@ -226,21 +189,13 @@ export default {
           picture._width = picture.width
           picture._height = picture.height
           picture.isChecked = false
-          picture.isShow = true
           return Object.assign(picture, item)
         })
-        // 记录一下 top
-        let top = 76
-        if (this.data.length > 0) {
-          top = this.data.reduce((i, n) => i + n.containerHeight, top)
-        }
-
         const currentData = {
           key: page,
           data: newData,
           boxes,
           containerHeight,
-          top,
         }
         this.$set(this.data, index, currentData)
         this.$set(this.containerHeight, index, containerHeight)
@@ -248,17 +203,22 @@ export default {
       })
     },
     onSectionIntersect(entries) {
+      console.log(entries[0])
+
       const target = entries[0].target
       const index = parseInt(target.id.replace('section-', ''))
       if (entries[0].isIntersecting) {
-        if (this.showSections.indexOf(index) < 0 && this.handleSectionsShow) {
+        if (this.showSections.indexOf(index) < 0) {
           this.showSections.push(index)
         }
+        console.log(target.id, '出现')
       } else {
-        if (this.showSections.indexOf(index) > -1 && this.handleSectionsShow) {
+        console.log(target.id, '被隐藏')
+        if (this.showSections.indexOf(index) > -1) {
           this.showSections = this.showSections.filter(i => i !== index)
         }
       }
+      console.log(this.showSections)
     },
     onIntersect(entries) {
       // More information about these options
@@ -269,60 +229,31 @@ export default {
         }
       }
     },
-    handleCheck(i, index) {
-      const checked = this.data[i].data[index].isChecked
-      this.$set(this.data[i].data[index], 'isChecked', !checked)
-      this.$store.commit('checked/CHECK', this.data[i].data[index])
-    },
-    preview(i, index) {
-      this.handleSectionsShow = false
-      const item = { ...this.data[i].data[index] }
-      this.$set(this.data[i].data[index], 'isShow', false)
-      let { width, height } = position(item._width, item._height)
-      const rect = this.$refs[
-        `show-image-${i}-${index}`
-      ][0].$el.getBoundingClientRect()
-      item.url += '?x-bce-process=style/h200'
-      // 取当前显示的数据所有 ID
-      console.log(this.data)
-      // const array = this.data.map(i => {
-      //   return i.data.map(n => n.id)
-      // })
-      const scrollTop = document.scrollingElement.scrollTop
-      const { left } = document
-        .getElementById('section-' + i)
-        .getBoundingClientRect()
-      this.$store.commit('picture/SET_POSITION', { scrollTop, left })
-      if (this.$store.state.picture.data.length === 0) {
-        this.$store.commit('picture/SET_DATA', this.data)
-      }
-
-      this.$store.commit(
-        'picture/SET_SHOW',
-        Object.assign(
-          {
-            show_width: width,
-            show_height: height,
-            rect: rect,
-            section: i,
-            index,
-          },
-          item
-        )
-      )
-
-      console.log('离开的区块为', i)
-      this.$router.push({
-        name: 'preview',
-        params: { id: 'dsaczxcuirewurhsfkjdshfsdjk' },
-      })
-    },
     check(i, index) {
+      console.log(this.checkedLength)
+      const item = { ...this.data[i].data[index] }
+      const checked = this.data[i].data[index].isChecked
       if (this.checkedLength > 0) {
-        this.handleCheck(i, index)
-        return
+        this.$set(this.data[i].data[index], 'isChecked', !checked)
+        this.$store.commit('checked/CHECK', this.data[i].data[index])
+      } else {
+        let { width, height } = position(item._width, item._height)
+        const rect = this.$refs[
+          `show-image-${i}-${index}`
+        ][0].$el.getBoundingClientRect()
+        item.url += '?x-bce-process=style/h200'
+        this.$store.commit(
+          'picture/SET_SHOW',
+          Object.assign(
+            { show_width: width, show_height: height, rect: rect },
+            item
+          )
+        )
+        this.$router.push({
+          name: 'preview',
+          params: { id: 'dsaczxcuirewurhsfkjdshfsdjk' },
+        })
       }
-      this.preview(i, index)
     },
   },
 }
