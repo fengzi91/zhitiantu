@@ -171,11 +171,11 @@ export default {
     this.initIndex = this.show.index
     this.initSection = this.show.section
   },
-  beforeRouteLeave(to, from, next) {
-    setTimeout(() => {
-      next()
-    }, 135)
-  },
+  // beforeRouteLeave(to, from, next) {
+  //   setTimeout(() => {
+  //     next()
+  //   }, 135)
+  // },
   methods: {
     goBack() {
       const positionStyle = {
@@ -187,9 +187,7 @@ export default {
       }
       this.showTopBar = false
       this.opacity = 0
-      if (!this.isChanged) {
-        this.positionStyle = positionStyle
-      } else {
+      if (this.isChanged) {
         // 初始时的高度
         const initTop =
           this.$store.state.picture.data[this.initSection].top +
@@ -202,12 +200,6 @@ export default {
             this.show.index
           ].top
         this.$store.commit('picture/SET_SCROLL_TOP', newTop - initTop)
-        this.positionStyle = {
-          translateX: 0,
-          translateY: 0,
-          scaleX: 0,
-          scaleY: 0,
-        }
       }
       this.positionStyle = positionStyle
       this.$router.back()
@@ -232,10 +224,6 @@ export default {
         const current = this.$store.state.picture.data[this.nextSection].data[
           this.nextIndex
         ]
-        const initData = this.$store.state.picture.data[this.initSection].data[
-          this.initIndex
-        ]
-        console.log('initData', initData)
         this.initBoxRect = {
           top: this.globalTop + current.top,
           left: this.globalLeft + current.left,

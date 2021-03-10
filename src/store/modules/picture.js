@@ -18,10 +18,10 @@ const mutations = {
       section: picture.section,
       index: picture.index,
     }
-    if (state.initSection < 0 && state.initIndex < 0) {
-      state.initSection = picture.section
-      state.initIndex = picture.index
-    }
+  },
+  SET_INIT_DATA(state, { section, index }) {
+    state.initSection = section
+    state.initIndex = index
   },
   SET_DATA(state, data) {
     state.data = data

@@ -57,13 +57,12 @@
               >
                 <v-icon color="gray">mdi-magnify-plus-outline</v-icon>
               </v-btn>
-              <v-img
+              <img
                 :src="`${item.url}?x-bce-process=style/h200`"
                 :lazy-src="`${item.url}?x-bce-process=style/h20`"
                 :height="item.height"
                 :width="item.width"
                 class="picture-transition"
-                cover
                 :class="item.isChecked ? 'tw-transform tw-scale-90' : ''"
               />
             </v-sheet>
@@ -145,28 +144,20 @@ export default {
       )
     },
   },
-  beforeRouteEnter(to, from, next) {
+  activated() {
     const current = store.state.picture.currentViewIndex
     const _index = store.state.picture.initIndex
     const _section = store.state.picture.initSection
-    const _scrollTop = store.state.picture.scrollTop
-    next(vm => {
-      if (current.index > -1) {
-        vm.showSections = [current.section]
-        vm.$set(vm.data[current.section].data[current.index], 'isShow', true)
-        vm.handleSectionsShow = true
-      }
-      if (_section > -1 || _index > -1) {
-        vm.$set(vm.data[_section].data[_index], 'isShow', true)
-      }
-      if (_scrollTop !== 0) {
-        // store.state.picture.initScrollTop + _scrollTop
-        store.commit('picture/SET_SCROLL_TOP', 0)
-        // vm.$vuetify.goTo(0).then(() => {
-        //
-        // })
-      }
-    })
+
+    if (current.index > -1) {
+      this.showSections = [current.section]
+      this.$set(this.data[current.section].data[current.index], 'isShow', true)
+      this.handleSectionsShow = true
+    }
+    if (_section > -1 || _index > -1) {
+      this.$set(this.data[_section].data[_index], 'isShow', true)
+      this.$store.commit('picture/SET_INIT_DATA', { section: -1, index: -1 })
+    }
   },
   created() {
     this.debounceOnIntersect = debounce(this.onIntersect, 200)
@@ -296,6 +287,7 @@ export default {
       }
       const scrollTop = document.scrollingElement.scrollTop
       this.$store.commit('picture/SET_INIT_SCROLL_TOP', scrollTop)
+      this.$store.commit('picture/SET_SCROLL_TOP', 0)
       this.$store.commit(
         'picture/SET_SHOW',
         Object.assign(
@@ -309,6 +301,7 @@ export default {
           item
         )
       )
+      this.$store.commit('picture/SET_INIT_DATA', { section: i, index })
       this.$router.push({
         name: 'preview',
         params: { id: 'dsaczxcuirewurhsfkjdshfsdjk' },
