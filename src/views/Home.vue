@@ -1,5 +1,5 @@
 <template>
-  <div class="tw-h-full tw-mt-3">
+  <div class="tw-h-full">
     <div
       class="tw-relative"
       :style="{ height: totalHeight + 'px', contain: 'layout' }"
@@ -21,7 +21,7 @@
       >
         <template v-if="showSections.indexOf(i) > -1">
           <template v-for="(item, index) in page.data">
-            <v-sheet
+            <div
               :key="`index-picture-${index}`"
               class="tw-absolute tw-cursor-pointer"
               :style="{
@@ -32,9 +32,9 @@
                 contain: 'layout',
                 opacity: item.isShow ? 1 : 0,
                 transition: 'opacity .135s',
+                'background-color': item.isChecked ? '#e8f0fe' : 'transpter',
               }"
               :class="item.isChecked ? 'tw-bg-blue-400' : ''"
-              :color="item.isChecked ? '#e8f0fe' : ''"
               :ref="`show-image-${i}-${index}`"
               @click="check(i, index)"
             >
@@ -53,7 +53,6 @@
                 class="tw-absolute"
                 style="bottom: 0; right: 0; z-index:9"
                 @click.stop="preview(i, index)"
-                v-if="item.isChecked"
               >
                 <v-icon color="gray">mdi-magnify-plus-outline</v-icon>
               </v-btn>
@@ -65,7 +64,7 @@
                 class="picture-transition"
                 :class="item.isChecked ? 'tw-transform tw-scale-90' : ''"
               />
-            </v-sheet>
+            </div>
           </template>
         </template>
       </div>
@@ -217,7 +216,7 @@ export default {
         const { boxes, containerHeight } = layoutHelper(
           data,
           this.containerWidth,
-          0
+          12
         )
         // 把坐标和图片合并到一起
         const newData = boxes.map((item, index) => {
@@ -279,7 +278,7 @@ export default {
       let { width, height } = position(item._width, item._height)
       const rect = this.$refs[
         `show-image-${i}-${index}`
-      ][0].$el.getBoundingClientRect()
+      ][0].getBoundingClientRect()
       item.url += '?x-bce-process=style/h200'
       // 取当前显示的数据所有 ID
       if (this.$store.state.picture.data.length === 0) {

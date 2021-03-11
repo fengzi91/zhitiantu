@@ -78,21 +78,12 @@ const router = new VueRouter({
   base: process.env.BASE_URL,
   routes,
   scrollBehavior(to, from, savedPosition) {
-    console.log(savedPosition, to, from)
-    const top = store.state.picture.scrollTop
-    console.log(top)
     if (to.name === 'Home' && from.name === 'preview' && top !== 0) {
       const scrollTop = savedPosition.y + store.state.picture.scrollTop
-      console.log(
-        '最终滚动的值',
-        savedPosition.y + store.state.picture.scrollTop
-      )
       return {
         x: 0,
         y: scrollTop,
       }
-    } else {
-      console.log('否', to, from, top)
     }
     if (savedPosition) {
       return savedPosition

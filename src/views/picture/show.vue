@@ -83,7 +83,7 @@ export default {
       return current.index > 0
         ? current.index - 1
         : current.section > 0
-        ? data[current.section - 1].data.length
+        ? data[current.section - 1].data.length - 1
         : -1
     },
     hasPrev() {
@@ -118,6 +118,58 @@ export default {
         this.initIndex !== this.$store.state.picture.currentViewIndex.index
       )
     },
+    scrollTopChange() {
+      const initTop =
+        this.$store.state.picture.data[this.initSection].top +
+        this.$store.state.picture.data[this.initSection].data[this.initIndex]
+          .top
+      // 新的高度
+      const newTop =
+        this.$store.state.picture.data[this.show.section].top +
+        this.$store.state.picture.data[this.show.section].data[this.show.index]
+          .top
+      return newTop - initTop
+    },
+    nextScrollTop() {
+      const initTop =
+        this.$store.state.picture.data[this.initSection].top +
+        this.$store.state.picture.data[this.initSection].data[this.initIndex]
+          .top
+      // 新的高度
+      const newTop = this.hasNext
+        ? this.$store.state.picture.data[this.nextSection].top +
+          this.$store.state.picture.data[this.nextSection].data[this.nextIndex]
+            .top
+        : 0
+      return newTop - initTop
+    },
+    prevScrollTop() {
+      const initTop =
+        this.$store.state.picture.data[this.initSection].top +
+        this.$store.state.picture.data[this.initSection].data[this.initIndex]
+          .top
+      // 新的高度
+      const newTop = this.hasPrev
+        ? this.$store.state.picture.data[this.prevSection].top +
+          this.$store.state.picture.data[this.prevSection].data[this.prevIndex]
+            .top
+        : 0
+      return newTop - initTop
+    },
+
+    isNext() {
+      return (
+        this.show.section >= this.initSection &&
+        this.show.index >= this.initIndex
+      )
+    },
+    initTop() {
+      return (
+        this.$store.state.picture.data[this.initSection].top +
+        this.$store.state.picture.data[this.initSection].data[this.initIndex]
+          .top
+      )
+    },
   },
   data: () => ({
     opacity: 0,
@@ -143,6 +195,10 @@ export default {
     },
     globalTop: 0,
     globalLeft: 0,
+    changeTo: '',
+    initItem: {
+      rect: {},
+    },
   }),
   mounted() {
     this.$set(
@@ -162,7 +218,6 @@ export default {
     }
     this.globalTop = this.show.rect.top - this.show.top
     this.globalLeft = this.show.rect.left - this.show.left
-    console.log(this.show.rect, this.initBoxRect)
     const positionStyle = this.getImagePosition()
     positionStyle.blur = 0
     setTimeout(() => {
@@ -170,6 +225,7 @@ export default {
     }, 10)
     this.initIndex = this.show.index
     this.initSection = this.show.section
+    this.initItem = Object.assign({}, this.show)
   },
   // beforeRouteLeave(to, from, next) {
   //   setTimeout(() => {
@@ -189,23 +245,17 @@ export default {
       this.opacity = 0
       if (this.isChanged) {
         // 初始时的高度
-        const initTop =
-          this.$store.state.picture.data[this.initSection].top +
-          this.$store.state.picture.data[this.initSection].data[this.initIndex]
-            .top
-        // 新的高度
-        const newTop =
-          this.$store.state.picture.data[this.show.section].top +
-          this.$store.state.picture.data[this.show.section].data[
-            this.show.index
-          ].top
-        this.$store.commit('picture/SET_SCROLL_TOP', newTop - initTop)
+        this.$store.commit(
+          'picture/SET_SCROLL_TOP',
+          this.scrollTopChanged(this.show.section, this.show.index)
+        )
       }
       this.positionStyle = positionStyle
       this.$router.back()
     },
     goNext() {
       if (this.hasNext) {
+        this.changeTo = 'next'
         const data = Object.assign(
           {
             rect: {
@@ -224,14 +274,25 @@ export default {
         const current = this.$store.state.picture.data[this.nextSection].data[
           this.nextIndex
         ]
+        const scrollTop = this.scrollTopChanged(
+          this.nextSection,
+          this.nextIndex
+        )
         this.initBoxRect = {
-          top: this.globalTop + current.top,
+          top:
+            scrollTop !== 0
+              ? this.initItem.rect.top
+              : this.$store.state.picture.data[this.nextSection].data[
+                  this.nextIndex
+                ].top -
+                this.initItem.top +
+                this.initItem.rect.top,
           left: this.globalLeft + current.left,
           width: current.width,
           height: current.height,
         }
         this.positionStyle = this.getImagePosition()
-
+        console.log(this.nextScrollTop, '滚动条高度变化')
         this.$store.commit(
           'picture/SET_SHOW',
           Object.assign(
@@ -245,7 +306,9 @@ export default {
       }
     },
     goPrev() {
+      console.log(this.prevSection, this.prevIndex)
       if (this.prevSection > -1 && this.prevIndex > -1) {
+        this.changeTo = 'prev'
         const data = Object.assign(
           {
             rect: {
@@ -260,13 +323,21 @@ export default {
         const current = this.$store.state.picture.data[this.prevSection].data[
           this.prevIndex
         ]
+        this.changeTo = 'prev'
+        const scrollTop = this.scrollTopChanged(
+          this.prevSection,
+          this.prevIndex
+        )
+        console.log(this.globalTop, scrollTop)
         this.initBoxRect = {
-          top: this.globalTop + current.top,
+          top: scrollTop !== 0 ? 88 : this.globalTop + current.top,
           left: this.globalLeft + current.left,
           width: current.width,
           height: current.height,
         }
         this.positionStyle = this.getImagePosition()
+
+        console.log(scrollTop, '滚动条高度变化')
         this.$store.commit(
           'picture/SET_SHOW',
           Object.assign(
@@ -311,8 +382,6 @@ export default {
       }
     },
     getImagePosition() {
-      console.log('rect => ', this.show.rect)
-      console.log('init rect => ', this.initBoxRect)
       const rect = this.initBoxRect
       // 原图尺寸
       const imageRealWidth = this.show._width
@@ -348,6 +417,50 @@ export default {
         showHeight: imageRatio * imageRealHeight,
         showWidth: imageRatio * imageRealWidth,
       }
+    },
+    scrollTopChanged(section, index) {
+      // 判断是否需要滚动
+      // 与初始元素同行时 滚动条不变化无需判断
+      // 初始元素 与窗口距离 rect:{top:100, bottom: 100}
+      // 距离顶部小于 需要滚动的距离 不滚动
+      const initTop =
+        this.$store.state.picture.data[this.initSection].top +
+        this.$store.state.picture.data[this.initSection].data[this.initIndex]
+          .top
+      const newTop =
+        this.$store.state.picture.data[section].top +
+        this.$store.state.picture.data[section].data[index].top
+      const maxScrollTop = this.$store.state.picture.initScrollTop
+      const globalTop = 88
+      console.log(
+        'newTop',
+        newTop,
+        '--',
+        newTop - globalTop,
+        'global',
+        globalTop,
+        'old',
+        maxScrollTop
+      )
+      // 三种情况 相等 返回 0
+      if (initTop < newTop) {
+        // 向下滚动了, 判断正在显示的图片是否还在缓存的窗口内，是 不操作滚动条， 增加 newTop - initTop
+        return newTop -
+          initTop +
+          this.$store.state.picture.data[section].data[index].height >
+          this.initItem.rect.bottom
+          ? newTop - initTop
+          : 0
+      } else if (newTop - globalTop < maxScrollTop) {
+        // 向上滚动了, 最多滚动 滚动条的高度
+
+        // this.initItem.rect.top 初始元素 距离窗口顶部的距离
+        // 正在显示的图片 距离窗口距离 =（距离文档的高度 - 滚动条高度) < 0 ? 未能完全显示 需要滚动
+        // 窗口剩 100
+
+        return -(globalTop - newTop + maxScrollTop)
+      }
+      return 0
     },
   },
 }
