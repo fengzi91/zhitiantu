@@ -110,7 +110,7 @@ import { index } from '@/api/pictures'
 import layoutHelper from '@/utils/justifiedLayout'
 import { debounce } from 'lodash'
 import ShareDialog from '@/components/Share/Dialog'
-import { position } from '@/utils/preview'
+import { getPreviewImageStyle } from '@/utils/preview'
 import store from '@/store'
 import { mapGetters } from 'vuex'
 export default {
@@ -275,11 +275,14 @@ export default {
       this.handleSectionsShow = false
       const item = { ...this.data[i].data[index] }
       this.$set(this.data[i].data[index], 'isShow', false)
-      let { width, height } = position(item._width, item._height)
+      let { width, height } = getPreviewImageStyle(
+        item,
+        this.$vuetify.breakpoint.width,
+        this.$vuetify.breakpoint.height
+      )
       const rect = this.$refs[
         `show-image-${i}-${index}`
       ][0].getBoundingClientRect()
-      item.url += '?x-bce-process=style/h200'
       // 取当前显示的数据所有 ID
       if (this.$store.state.picture.data.length === 0) {
         this.$store.commit('picture/SET_DATA', this.data)

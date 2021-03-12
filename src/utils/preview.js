@@ -1,121 +1,5 @@
 // 图片位置辅助
 import vuetify from '@/plugins/vuetify'
-export const position = (width, height) => {
-  const windowWidth = vuetify.framework.breakpoint.width - 20
-  const windowHeight = vuetify.framework.breakpoint.height - 20
-  // 计算图片缩放比例
-  let aspectRatio =
-    width / windowWidth > height / windowHeight
-      ? width / windowWidth
-      : height / windowHeight
-  return {
-    width: width / aspectRatio,
-    height: height / aspectRatio,
-  }
-}
-/**
- * 缩放比例
- * @param {number} originWidth
- * @param {number} originHeight
- * @param {number} windowWidth
- * @param {number} windowHeight
- * @param {object} previewOffset 四个边的边距
- * @returns {number}
- */
-export const aspectRatio = (
-  originWidth,
-  originHeight,
-  windowWidth,
-  windowHeight,
-  previewOffset = { top: 20, left: 20, right: 20, bottom: 20 }
-) => {
-  const containerWidth = windowWidth - previewOffset.left - previewOffset.right
-  const containerHeight =
-    windowHeight - previewOffset.top - previewOffset.bottom
-  // return originWidth / containerWidth > originHeight / containerHeight
-  //   ? originWidth / containerWidth
-  //   : originHeight / containerHeight
-  const ratioX = containerWidth / originWidth
-  const ratioY = containerHeight / originHeight
-  if (originHeight <= containerHeight && originWidth <= containerWidth) {
-    return 1
-  } else if (ratioX < ratioY) {
-    // 无法完整放入
-    return ratioX
-  } else {
-    return ratioY
-  }
-}
-/**
- *  计算图片变换
- * @param width 图片正在显示的宽度
- * @param height 图片正在显示的高度
- * @param originWidth 图片实际宽度
- * @param originHeight 图片实际高度
- * @param windowWidth 实际显示区块宽度
- * @param windowHeight 实际显示区块高度
- * @param rect 当前所在位置信息 document.get
- * @param previewOffset 相对于窗口四边留白尺寸
- */
-export const computedPosition = (
-  width,
-  height,
-  originWidth,
-  originHeight,
-  windowWidth,
-  windowHeight,
-  rect,
-  previewOffset = {
-    top: 20,
-    left: 20,
-    right: 20,
-    bottom: 20,
-    width: 0,
-    height: 0,
-  }
-) => {
-  const ratio = aspectRatio(
-    originWidth,
-    originHeight,
-    windowWidth,
-    windowHeight,
-    previewOffset
-  )
-  // eslint-disable-next-line no-undef
-  console.log(
-    '传入的参数：',
-    ratio,
-    'width-> ',
-    width,
-    'height->',
-    height,
-    'ww->',
-    windowWidth,
-    'wh->',
-    windowHeight,
-    rect,
-    originWidth,
-    originHeight
-  )
-  const positionY =
-    previewOffset.top +
-    (windowHeight - previewOffset.top - previewOffset.bottom) / 2
-  const positionX =
-    previewOffset.left +
-    (windowWidth - previewOffset.left - previewOffset.right) / 2
-  // 要进行的移动
-  const translateX = positionX - (rect.left + width / 2) + rect.left
-  const translateY = positionY - (rect.top + height / 2) + rect.top
-  // 缩放
-  const scaleY = (ratio * originHeight) / height
-  const scaleX = (ratio * originWidth) / width
-  return {
-    translateX,
-    translateY,
-    scaleX,
-    scaleY,
-  }
-}
 /**
  * 计算变换属性
  * @param originWidth 原始宽度
@@ -139,8 +23,8 @@ export const computedTransform = (
 ) => {
   const translateX = newLeft - originLeft + (newWidth - originWidth) / 2
   const translateY = newTop - originTop + (newHeight - originHeight) / 2
-  const scaleX = originWidth / newWidth
-  const scaleY = originHeight / newHeight
+  const scaleX = newWidth / originWidth
+  const scaleY = newHeight / originHeight
   return {
     translateX,
     translateY,
@@ -148,3 +32,152 @@ export const computedTransform = (
     scaleY,
   }
 }
+/**
+ * 获取当前正在显示的图片缩小后 滚动条的变化值
+ *
+ * @return {Number} > 0 向下滚动， < 0 向上滚动 0 不变
+ */
+export const getCurrentShowImageScrollTop = (
+  initSection,
+  initItem,
+  currentSection,
+  currentItem,
+  initScrollTop
+) => {
+  const initTop = initSection.top + initItem.top
+  const currentTop = currentSection.top + currentItem.top
+  // const maxScrollTop = initScrollTop
+  const globalTop = 76
+  const windowHeight = vuetify.framework.breakpoint.height
+  if (initTop > currentTop) {
+    // 往上翻页
+    console.log('往上翻', initScrollTop)
+    // 滚动距离越少越好
+    return parseInt(initItem.rect.top - globalTop) >=
+      parseInt(initTop - currentTop)
+      ? 0
+      : parseInt(initItem.rect.top - globalTop) - parseInt(initTop - currentTop) //-(currentItem.height - (initTop - initScrollTop - globalTop))
+  } else if (initTop < currentTop) {
+    console.log('往下翻')
+    // 向下滚动了, 判断正在显示的图片是否还在缓存的窗口内，是 不操作滚动条， 增加 newTop - initTop
+    return parseInt(currentTop - initTop + currentItem.height) <=
+      parseInt(windowHeight - initItem.rect.top)
+      ? 0
+      : parseInt(currentTop - initTop + currentItem.height) -
+          parseInt(windowHeight - initItem.rect.top) // currentTop - initTop
+  }
+  return 0
+}
+/**
+ * 用于返回时 缩小图片到指定位置
+ * @param initRect DOMRect
+ * @param initSection
+ * @param initItem 正在显示的元素
+ * @param currentSection
+ * @param currentItem 即将显示的元素
+ * @param initScrollTop
+ * @param scrollTopChanged
+ */
+export const getSmallImagePosition = (
+  initRect,
+  initSection,
+  initItem,
+  currentSection,
+  currentItem,
+  initScrollTop,
+  scrollTopChanged
+) => {
+  let positionTop
+  const positionLeft = initRect.left - initItem.left + currentItem.left
+  // 整体上下位置 需要滚动
+  const scrollTop =
+    typeof scrollTopChanged === 'undefined'
+      ? getCurrentShowImageScrollTop(
+          initSection,
+          initItem,
+          currentSection,
+          currentItem,
+          initScrollTop
+        )
+      : scrollTopChanged
+  // const windowHeight = vuetify.framework.breakpoint.height
+  const initTop = initSection.top + initItem.top
+  const currentTop = currentSection.top + currentItem.top
+  console.log('滚多少', scrollTop)
+  if (scrollTop === 0) {
+    // 滚动条不变，按原来的位置显示
+    positionTop =
+      initTop >= currentTop
+        ? initRect.top - (initTop - currentTop)
+        : initRect.top + (currentTop - initTop)
+  } else {
+    positionTop =
+      initTop === currentTop
+        ? initRect.top
+        : initTop > currentTop
+        ? initRect.top + scrollTop < 0
+          ? 76
+          : initRect.top + scrollTop
+        : initRect.top + (currentTop - initTop) - scrollTop
+  }
+  return {
+    top: positionTop,
+    left: positionLeft,
+    width: currentItem.width,
+    height: currentItem.height,
+  }
+}
+/**
+ * 获取展示的大图的最终样式 top left width height
+ * @param {Object} currentItem
+ * @param {Number} windowWidth
+ * @param {Number} windowHeight
+ * @param {Object} previewOffset
+ * @param {Element} dom
+ *
+ * @return {Object}
+ */
+export const getPreviewImageStyle = (
+  currentItem,
+  windowWidth,
+  windowHeight,
+  previewOffset,
+  dom
+) => {
+  if (typeof dom === 'object' && dom !== null) {
+    return dom.getBoundingClientRect()
+  }
+  previewOffset =
+    typeof previewOffset === 'undefined'
+      ? { top: 20, left: 20, right: 20, bottom: 20 }
+      : previewOffset
+  const containerHeight =
+    windowHeight - previewOffset.top - previewOffset.bottom
+  const containerWidth = windowWidth - previewOffset.left - previewOffset.right
+  let ratio = 1
+  if (
+    containerWidth >= currentItem._width &&
+    containerHeight >= currentItem._width
+  ) {
+    ratio = 1
+  } else if (
+    currentItem._width / containerWidth >
+    currentItem._height / containerHeight
+  ) {
+    ratio = currentItem._width / containerWidth
+  } else {
+    ratio = currentItem._height / containerHeight
+  }
+  const width = currentItem._width / ratio
+  const height = currentItem._height / ratio
+  const top = previewOffset.top + (containerHeight - height) / 2
+  const left = previewOffset.left + (containerWidth - width) / 2
+  return {
+    top,
+    left,
+    width,
+    height,
+  }
+}
+// 获取由大图转为小图的样式
+export const getTransformToSmall = () => {}
