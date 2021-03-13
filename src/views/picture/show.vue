@@ -4,6 +4,15 @@
       <v-btn icon color="white" @click="goBack">
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
+      <v-spacer></v-spacer>
+      <v-btn
+        icon
+        fab
+        :color="show.isChecked ? 'primary' : 'white'"
+        @click="handleCheck"
+      >
+        <v-icon>mdi-check</v-icon>
+      </v-btn>
     </v-toolbar>
     <div
       class="preview-img tw-absolute tw-z-40"
@@ -58,7 +67,7 @@
     <v-hover v-slot:default="{ hover }" v-if="hasNext">
       <div
         class="right-arrow tw-absolute tw-cursor-pointer tw-z-50"
-        style="right: 0;top: 0; width: 33.3333%;bottom: 0;"
+        style="right: 0;top: 0; width: 33.3333%;bottom: 0;margin-top: 76px;"
         @click="goNext"
       >
         <div
@@ -348,6 +357,16 @@ export default {
       if (this.hasPrev) {
         this.changePicture('prev')
       }
+    },
+    handleCheck() {
+      const checked = this.show.isChecked
+      this.$store.commit('picture/SET_PICTURE_PROPERTY', {
+        section: this.show.section,
+        index: this.show.index,
+        key: 'isChecked',
+        value: !checked,
+      })
+      this.$store.commit('checked/CHECK', this.show)
     },
   },
 }

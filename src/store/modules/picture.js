@@ -1,3 +1,4 @@
+import Vue from 'vue'
 const state = {
   show: {},
   currentViewIndex: {
@@ -17,6 +18,12 @@ const mutations = {
     state.currentViewIndex = {
       section: picture.section,
       index: picture.index,
+    }
+  },
+  SET_PICTURE_PROPERTY(state, { section, index, key, value }) {
+    Vue.set(state.data[section].data[index], key, value)
+    if (state.show.section === section && state.show.index === index) {
+      Vue.set(state.show, key, value)
     }
   },
   SET_INIT_DATA(state, { section, index }) {

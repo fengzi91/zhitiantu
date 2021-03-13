@@ -20,9 +20,12 @@
         }"
       >
         <template v-if="showSections.indexOf(i) > -1">
-          <template v-for="(item, index) in page.data">
+          <v-hover
+            v-for="(item, index) in page.data"
+            :key="`index-picture-${index}`"
+            v-slot="{ hover }"
+          >
             <div
-              :key="`index-picture-${index}`"
               class="tw-absolute tw-cursor-pointer"
               :style="{
                 width: item.width + 'px',
@@ -39,20 +42,35 @@
               @click="check(i, index)"
             >
               <v-btn
-                icon
+                fab
                 class="tw-absolute"
-                style="top: 0; left: 0; z-index:9"
+                dark
+                plain
+                style="top: 4px; left: 4px; z-index:9; width: 22px;height: 22px;"
+                :color="item.isChecked ? 'blue' : 'gray'"
                 @click.stop="handleCheck(i, index)"
+                v-if="hover || checkedLength > 0"
               >
-                <v-icon :color="item.isChecked ? 'blue' : 'gray'"
-                  >mdi-check</v-icon
-                >
+                <v-icon
+                  :color="item.isChecked ? 'blue' : 'gray'"
+                  dark
+                  v-html="
+                    item.isChecked
+                      ? 'mdi-check-circle'
+                      : hover
+                      ? 'mdi-check-circle-outline'
+                      : 'mdi-checkbox-blank-circle-outline'
+                  "
+                ></v-icon>
               </v-btn>
               <v-btn
                 icon
+                small
+                color="white"
                 class="tw-absolute"
                 style="bottom: 0; right: 0; z-index:9"
                 @click.stop="preview(i, index)"
+                v-if="hover && checkedLength > 0"
               >
                 <v-icon color="gray">mdi-magnify-plus-outline</v-icon>
               </v-btn>
@@ -65,7 +83,7 @@
                 :class="item.isChecked ? 'tw-transform tw-scale-90' : ''"
               />
             </div>
-          </template>
+          </v-hover>
         </template>
       </div>
     </div>
