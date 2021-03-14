@@ -37,13 +37,16 @@
                 transition: 'opacity .135s',
                 'background-color': item.isChecked ? '#e8f0fe' : 'transpter',
               }"
-              :class="item.isChecked ? 'tw-bg-blue-400' : ''"
+              :class="[
+                item.isChecked ? 'tw-bg-blue-400' : '',
+                hover ? 'picture-background' : '',
+              ]"
               :ref="`show-image-${i}-${index}`"
               @click="check(i, index)"
             >
               <v-btn
                 fab
-                class="tw-absolute"
+                class="tw-absolute tw-z-20"
                 dark
                 plain
                 style="top: 4px; left: 4px; z-index:9; width: 22px;height: 22px;"
@@ -67,7 +70,7 @@
                 icon
                 small
                 color="white"
-                class="tw-absolute"
+                class="tw-absolute tw-z-20"
                 style="bottom: 0; right: 0; z-index:9"
                 @click.stop="preview(i, index)"
                 v-if="hover && checkedLength > 0"
@@ -82,12 +85,49 @@
                 class="picture-transition"
                 :class="item.isChecked ? 'tw-transform tw-scale-90' : ''"
               />
+              <div
+                v-show="hover"
+                class="tw-transition-all tw-duration-100 tw-text-sm tw-absolute tw-inset-0 picture-background tw-z-0 tw-text-white tw-p-2 tw-inline-flex tw-items-end"
+              >
+                {{ item.title }}
+              </div>
             </div>
           </v-hover>
         </template>
       </div>
     </div>
-    <v-container fluid>
+    <v-container
+      fluid
+      :class="{ 'fill-height': data.length <= 0 }"
+      v-show="noMoreData"
+    >
+      <v-row>
+        <v-col>
+          <v-sheet
+            elevation="2"
+            class="tw-max-w-md mx-auto tw-p-6 text-center"
+            rounded
+          >
+            <template v-if="data.length > 0">
+              已加载全部数据
+            </template>
+            <template v-else-if="!loadDataError">
+              没有找到与
+              <span class="tw-text-red-400">{{ keyword }}</span>
+              相关的图片
+            </template>
+            <template v-else>
+              网络错误，请稍后<span
+                class="tw-text-indigo-400 tw-cursor-pointer"
+                @click="fetchIndex"
+                >重试</span
+              >！
+            </template>
+          </v-sheet>
+        </v-col>
+      </v-row>
+    </v-container>
+    <v-container fluid v-show="!noMoreData">
       <v-row class="text-center">
         <v-col cols="12">
           <div
@@ -130,16 +170,14 @@ import { debounce } from 'lodash'
 import ShareDialog from '@/components/Share/Dialog'
 import { getPreviewImageStyle } from '@/utils/preview'
 import store from '@/store'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 export default {
   name: 'Home',
   components: {
     ShareDialog,
   },
   data: () => ({
-    pictures: [],
     containerHeight: [10],
-    boxes: [],
     data: [],
     picturesLoading: false,
     page: 1,
@@ -147,9 +185,14 @@ export default {
     disabledLoad: false,
     showSections: [0],
     handleSectionsShow: true,
+    loadCount: 0,
+    noMoreData: false,
+    loadDataError: false,
   }),
   computed: {
     ...mapGetters(['checkedLength']),
+    ...mapState('search', ['keyword']),
+    ...mapState('filter', ['filter']),
     totalHeight() {
       return this.containerHeight.reduce((t, n) => t + n)
     },
@@ -178,6 +221,7 @@ export default {
   },
   created() {
     this.debounceOnIntersect = debounce(this.onIntersect, 200)
+    this.debouncedLoadData = debounce(this.fetchIndex, 500)
   },
   mounted() {
     this.handleSectionsShow = true
@@ -198,25 +242,57 @@ export default {
         this.$store.commit('checked/SET_CLEAR')
       }
     },
+    keyword() {
+      this.debouncedLoadData(true)
+    },
+    filter() {
+      this.debouncedLoadData(true)
+    },
   },
   methods: {
     async fetchIndex(reset = false) {
+      this.loadCount++
       if (this.picturesLoading || this.disabledLoad) return
       this.picturesLoading = true
       try {
         const params = {
           page: 1,
+          keyword: this.keyword,
+          filter: this.filter,
         }
         if (!reset) {
           params.page = ++this.current_page
+        } else {
+          this.refreshData()
         }
-        const { data, meta } = await index(params)
+        const { data, meta, facets } = await index(params)
         this.current_page = meta.current_page
-        await this.layout(data, this.current_page)
+        if (reset) {
+          this.$vuetify.goTo(0)
+        }
+        if (data.length > 0) {
+          await this.layout(data, this.current_page)
+        }
+        if (meta.current_page === meta.last_page || data.length <= 0) {
+          this.noMoreData = true
+        }
+        if (facets) {
+          this.$store.commit('filter/SET_DATA', facets)
+        }
         this.picturesLoading = false
+        this.loadDataError = false
       } catch (error) {
-        console.log(error)
+        this.picturesLoading = false
+        this.noMoreData = true
+        this.loadDataError = true
       }
+    },
+    // 清理数据
+    refreshData() {
+      this.containerHeight = [10]
+      this.noMoreData = false
+      this.data = []
+      this.current_page = 1
     },
     /**
      * 重新渲染所有数据
@@ -302,9 +378,7 @@ export default {
         `show-image-${i}-${index}`
       ][0].getBoundingClientRect()
       // 取当前显示的数据所有 ID
-      if (this.$store.state.picture.data.length === 0) {
-        this.$store.commit('picture/SET_DATA', this.data)
-      }
+      this.$store.commit('picture/SET_DATA', this.data)
       const scrollTop = document.scrollingElement.scrollTop
       this.$store.commit('picture/SET_INIT_SCROLL_TOP', scrollTop)
       this.$store.commit('picture/SET_SCROLL_TOP', 0)
@@ -340,5 +414,13 @@ export default {
 <style lang="scss" scoped>
 .picture-transition {
   transition: transform 0.135s cubic-bezier(0, 0, 0.2, 1);
+}
+.picture-background {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.26),
+    transparent 56px,
+    transparent
+  );
 }
 </style>

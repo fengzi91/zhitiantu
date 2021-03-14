@@ -15,6 +15,8 @@
       </div>
 
       <v-spacer></v-spacer>
+      <search-input></search-input>
+      <v-spacer></v-spacer>
       <v-btn
         icon
         text
@@ -97,8 +99,10 @@
 </template>
 <script>
 import { mapGetters } from 'vuex'
+import SearchInput from '@/components/Common/SearchInput'
 export default {
   name: 'AppBar',
+  components: { SearchInput },
   computed: {
     ...mapGetters(['isLoggedIn', 'userinfo', 'checkedLength']),
   },

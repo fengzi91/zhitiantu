@@ -22,9 +22,38 @@
         </v-list-item>
       </v-list-item-group>
     </v-list>
+    <v-spacer></v-spacer>
+    <v-list dense>
+      <v-subheader>筛选图片</v-subheader>
+      <v-list-item
+        color="primary"
+        @click="handleFilter({})"
+        :input-value="filter.length <= 0"
+      >
+        <v-list-item-content>
+          <v-list-item-title>全部</v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
+      <template v-for="(item, index) in filters">
+        <v-list-item
+          v-if="item.value > 0"
+          :key="index"
+          @click="handleFilter(item)"
+          :input-value="filter.indexOf(item.key) > -1"
+          color="primary"
+        >
+          <v-list-item-content>
+            <v-list-item-title
+              >{{ item.key }}({{ item.value }})</v-list-item-title
+            >
+          </v-list-item-content>
+        </v-list-item>
+      </template>
+    </v-list>
   </v-navigation-drawer>
 </template>
 <script>
+import { mapState } from 'vuex'
 export default {
   computed: {
     drawer: {
@@ -48,6 +77,7 @@ export default {
       },
       set() {},
     },
+    ...mapState('filter', ['filters', 'filter']),
   },
   data: () => ({
     items: [
@@ -83,7 +113,6 @@ export default {
   methods: {
     goTo(item) {
       const handle = item.handle
-
       typeof handle === 'string'
         ? this.$router.push({ name: handle })
         : typeof handle === 'object'
@@ -91,6 +120,9 @@ export default {
         : typeof handle === 'function'
         ? handle(this)
         : null
+    },
+    handleFilter(item) {
+      this.$store.commit('filter/SET_FILTER', item)
     },
   },
 }
