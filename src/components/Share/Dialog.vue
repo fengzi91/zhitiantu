@@ -51,14 +51,17 @@
               prepend-icon="mdi-image-multiple"
               placeholder="输入一个标题"
               hint="可以留空"
+              v-model="title"
             ></v-text-field>
             <v-text-field
               label="访问密码"
               prepend-icon="mdi-link-lock"
               placeholder="输入一个密码以限制访问"
               v-model="password"
+              :rules="passwordRules"
+              id="password"
             >
-              <template v-slot:append-outer>
+              <template v-slot:append-outer v-if="!collectCreated">
                 <v-tooltip bottom>
                   <template v-slot:activator="{ on, attrs }">
                     <v-btn
@@ -68,7 +71,7 @@
                       @click="generatorPassword"
                     >
                       <v-icon>
-                        mdi-lastpass
+                        mdi-lock-reset
                       </v-icon>
                     </v-btn>
                   </template>
@@ -97,15 +100,16 @@
               </v-btn>
             </div>
           </template>
-          <template v-else>
+          <template v-if="collectCreated">
             <v-card-title>分享集已创建</v-card-title>
             <v-text-field
               label="分享集地址"
-              v-model="link"
+              v-model="full_link"
               :readonly="true"
               append-outer-icon="mdi-content-copy"
               @click:append-outer="copyLink"
               ref="select-input"
+              id="select"
               :success-messages="collectCopied ? '链接地址已复制' : ''"
               :error-messages="
                 collectLinkCopyError ? '链接复制失败，请手动复制' : ''
@@ -134,6 +138,8 @@
 </template>
 <script>
 import { generatorPassword } from '@/utils'
+import { create } from '@/api/collect'
+
 export default {
   computed: {
     dialog: {
@@ -162,16 +168,19 @@ export default {
         /.+@((vip\.|)qq\.com)|(126\.com)|(163\.com)|(gmail\.com)/.test(v) ||
         '邮箱格式不正确',
     ],
+    passwordRules: [v => v.length <= 12 || '密码不能超过 12 位'],
     mode: 'email',
     password: '',
     createCollectLoading: false,
     collectCreated: false,
     link: '',
+    full_link: '',
     collectCopied: false,
     collectLinkCopyError: false,
     email: null,
     canSendEmail: false,
     emailSending: false,
+    title: undefined,
   }),
   mounted() {},
   methods: {
@@ -185,17 +194,27 @@ export default {
     generatorPassword() {
       this.password = generatorPassword(4)
     },
-    createCollect() {
+    async createCollect() {
       if (this.createCollectLoading) return
       this.createCollectLoading = true
-      setTimeout(() => {
-        this.createCollectLoading = false
+      try {
+        const { data } = await create({
+          title: this.title,
+          password: this.password,
+          pictures: this.$store.state.checked.data.map(i => i.id),
+        })
+        console.log(data)
+        this.link = data.link
+        this.full_link = data.full_link
         this.collectCreated = true
-        this.link = `https://www.a.com/${generatorPassword(16)}`
-      }, parseInt(Math.random() * 5) * 1000)
+      } catch (e) {
+        console.log(e)
+      } finally {
+        this.createCollectLoading = false
+      }
     },
     viewCollect() {
-      this.$router.push({ name: 'ViewCollect', params: { id: 1 } })
+      this.$router.push({ name: 'ViewCollect', params: { id: this.link } })
     },
     copyLink() {
       const input = this.$refs['select-input'].$refs['input']

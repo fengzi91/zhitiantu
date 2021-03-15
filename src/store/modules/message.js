@@ -50,7 +50,7 @@ const mutations = {
 }
 
 const actions = {
-  async pushMessage({ state, commit, dispatch }, message) {
+  pushMessage({ state, commit, dispatch }, message) {
     // 先把 id 计算出来
     commit('ADD_INDEX')
     const id = state.index
@@ -62,16 +62,16 @@ const actions = {
     }
     message.id = id
     commit('ADD', message)
-    await dispatch('setHide', {
+    dispatch('setHide', {
       id,
       timeout: message.timeout,
     })
     return id
   },
-  async updateMessage({ state, commit, dispatch }, message) {
+  updateMessage({ state, commit, dispatch }, message) {
     const id = _.get(message, 'id', 0)
     if (id === 0) {
-      return await dispatch('pushMessage', message)
+      return dispatch('pushMessage', message)
     } else {
       const index = _.findIndex(state.messages, item => item.id === id)
       let timer = _.get(state.messages, `[${index}].timer`, -1)
@@ -81,7 +81,7 @@ const actions = {
         commit('UPDATE', message)
         return message.id
       } else {
-        return await dispatch('pushMessage', message)
+        return dispatch('pushMessage', message)
       }
     }
   },
@@ -105,6 +105,13 @@ const actions = {
         timer,
       })
     }
+  },
+  error({ dispatch }, { message, timeout }) {
+    dispatch('pushMessage', {
+      type: 'error',
+      content: message,
+      timeout,
+    })
   },
 }
 

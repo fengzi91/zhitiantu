@@ -22,3 +22,7 @@ const store = new Vuex.Store({
 })
 
 export default store
+
+export const messageError = (message, timeout = 3000) => {
+  store.dispatch('message/error', { message, timeout })
+}

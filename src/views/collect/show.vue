@@ -29,7 +29,7 @@
               <v-card-text>
                 <v-text-field
                   label="密码"
-                  v-model="password"
+                  v-model="newPassword"
                   :error-messages="
                     passwordError ? '您输入的密码有误，请重试' : null
                   "
@@ -50,136 +50,124 @@
         </v-col>
       </v-row>
     </v-container>
-    <div
-      class="tw-my-md-8 tw-my-0 tw-h-48 tw-mt-1"
-      v-if="data.title"
-      style="background-size: cover"
-      :style="
-        `background-image:url('${pictures[0].url}?x-bce-process=style/h200');`
-      "
-    >
-      <v-card-title class="white--text">{{ data.title }}</v-card-title>
-    </div>
-    <div v-if="pictures.length > 0">
-      <div class="tw-relative tw-w-full" :style="`height: ${totalHeight}px;`">
-        <template v-for="(item, index) in pictures">
-          <v-sheet
-            :key="`index-picture-${index}`"
-            class="tw-absolute tw-cursor-pointer"
-            :style="{
-              width: item.width + 'px',
-              height: item.height + 'px',
-              // left: item.left + 'px',
-              // top: item.top + 'px',
-              transform: `translate(${item.left}px, ${item.top}px)`,
-            }"
+    <v-container>
+      <v-row>
+        <v-col ref="container">
+          <div
+            class="tw-my-md-8 tw-my-0 tw-mt-1 tw-bg-gradient-to-b"
+            v-if="collect.title"
           >
-            <v-img
-              :src="`${item.url}?x-bce-process=style/h200`"
-              :lazy-src="`${item.url}?x-bce-process=style/h20`"
-              :height="item.height"
-              :width="item.width"
-              cover
-            />
-          </v-sheet>
-        </template>
-      </div>
-    </div>
+            <v-card-title class="">{{ collect.title }}</v-card-title>
+          </div>
+          <picture-list
+            :prent-data="data"
+            :width="containerWidth"
+          ></picture-list>
+        </v-col>
+      </v-row>
+    </v-container>
   </div>
 </template>
 <script>
-import { fetchData } from '@/api/collect'
-import layoutHelper from '@/utils/justifiedLayout'
-
+import { checkPassword, fetchData } from '@/api/collect'
+import { mapGetters } from 'vuex'
+import PictureList from '@/components/Picture/List'
 export default {
+  components: {
+    PictureList,
+  },
   computed: {
+    ...mapGetters(['checkedLength']),
     id() {
       return this.$route.params.id || 0
     },
-    containerWidth() {
+    passwordChecked() {
       return (
-        this.$vuetify.breakpoint.width -
-        this.$vuetify.application.left -
-        (this.$vuetify.breakpoint.mobile
-          ? 0
-          : this.$vuetify.breakpoint.scrollBarWidth)
+        this.$store.state.collect.passwordChecked.findIndex(
+          i => i.id === this.id
+        ) > -1
       )
     },
-    passwordChecked() {
-      return this.$store.state.collect.passwordChecked.indexOf(this.id) > -1
+    password: {
+      get() {
+        const index = this.$store.state.collect.passwordChecked.findIndex(
+          i => i.id === this.id
+        )
+        return index > -1
+          ? this.$store.state.collect.passwordChecked[index].password
+          : undefined
+      },
+      set(value) {
+        this.$store.dispatch('collect/savePassword', {
+          id: this.id,
+          password: value,
+        })
+      },
     },
   },
   watch: {
-    '$store.state.global.navigationDrawerMini'() {
-      this.layoutData(this.data.pictures)
-    },
+    '$store.state.global.navigationDrawerMini'() {},
   },
   created() {
+    this.newPassword = this.password
+  },
+  mounted() {
+    this.containerWidth = this.$refs.container.getBoundingClientRect().width
     this.fetchData()
   },
-  mounted() {},
   data: () => ({
-    data: {
+    collect: {
       pictures: [],
     },
+    data: [],
     pictures: [],
     loading: false,
-    totalHeight: 0,
     showPasswordForm: false,
-    password: undefined,
     passwordError: false,
     passwordLoading: false,
+    newPassword: null,
+    containerWidth: 1160,
   }),
   methods: {
     async fetchData() {
       this.loading = true
-      const { data } = await fetchData(this.id)
-      if (data.id === 1 && !this.passwordChecked) {
-        this.needPassword()
+      try {
+        const requestParams = {}
+        if (this.newPassword) {
+          requestParams.password = this.newPassword
+        }
+        const { data } = await fetchData(this.id, requestParams)
+        // this.layoutData(data.pictures)
+        this.collect = data
+        if (data.pictures.length > 0) {
+          this.data.push({ page: 1, data: data.pictures })
+        }
+      } catch (e) {
+        if (e.response && e.response.status === 403) {
+          this.needPassword()
+        }
+      } finally {
         this.loading = false
-        return
       }
-      this.layoutData(data.pictures)
-      this.data = data
-      this.loading = false
-    },
-    layoutData(pictures) {
-      console.log('记录 width -> ', this.containerWidth)
-      console.log('$vuetify', this.$vuetify)
-      const { boxes, containerHeight } = layoutHelper(
-        pictures,
-        this.containerWidth,
-        64
-      )
-      const newData = boxes.map((item, index) => {
-        const picture = { ...pictures[index] }
-        picture._width = picture.width
-        picture._height = picture.height
-        return Object.assign(picture, item)
-      })
-      console.log(newData)
-      this.totalHeight = containerHeight
-      this.pictures = newData
     },
     needPassword() {
       this.showPasswordForm = true
     },
-    checkPassword() {
+    async checkPassword() {
       this.passwordLoading = true
-      setTimeout(() => {
-        if (this.password === '123456') {
-          this.$store.dispatch('collect/savePassword', {
-            id: this.id,
-            checked: true,
-          })
-          this.passwordError = false
-          this.showPasswordForm = false
-          this.fetchData()
-        } else {
-          this.passwordError = true
-        }
+      try {
+        await checkPassword(this.id, this.newPassword)
+        this.passwordError = false
+        this.showPasswordForm = false
+        // 更新到缓存
+        this.password = this.newPassword
+        this.fetchData()
+      } catch (e) {
+        console.log(e)
+        this.passwordError = true
+      } finally {
         this.passwordLoading = false
-      }, 2000)
+      }
     },
   },
 }

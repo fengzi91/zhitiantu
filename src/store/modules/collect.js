@@ -1,25 +1,25 @@
 import ls from '@/utils/ls'
+import Vue from 'vue'
 const state = {
   passwordChecked: ls.get('checkedCollect', []),
 }
 
 const mutations = {
-  ADD_PASSWORD_CHECKED(state, id) {
+  ADD_PASSWORD_CHECKED(state, { id, password }) {
     const checked = state.passwordChecked
-    if (checked.indexOf(id) < 0) {
-      state.passwordChecked.push(id)
-      ls.set('checkedCollect', state.passwordChecked)
+    const index = checked.findIndex(i => i.id === id)
+    if (index < 0) {
+      state.passwordChecked.push({ id, password })
+    } else {
+      Vue.set(state.passwordChecked, index, { id, password })
     }
+    ls.set('checkedCollect', state.passwordChecked)
   },
 }
 
 const actions = {
-  savePassword({ commit }, { id, checked }) {
-    if (checked) {
-      commit('ADD_PASSWORD_CHECKED', id)
-    } else {
-      commit('REMOVE_PASSWORD_CHECKED', id)
-    }
+  savePassword({ commit }, { id, password }) {
+    commit('ADD_PASSWORD_CHECKED', { id, password })
   },
 }
 

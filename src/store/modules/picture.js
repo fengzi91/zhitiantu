@@ -1,4 +1,7 @@
 import Vue from 'vue'
+import { getPreviewImageStyle } from '@/utils/preview'
+import router from '@/router'
+import vuetify from '@/plugins/vuetify'
 const state = {
   show: {},
   currentViewIndex: {
@@ -41,7 +44,40 @@ const mutations = {
   },
 }
 
-const actions = {}
+const actions = {
+  preview({ commit }, { picture, data, scrollTop, rect }) {
+    console.log(vuetify)
+    let { width, height } = getPreviewImageStyle(
+      picture,
+      vuetify.framework.breakpoint.width,
+      vuetify.framework.breakpoint.height
+    )
+    commit('SET_DATA', data)
+    commit('SET_INIT_SCROLL_TOP', scrollTop)
+    commit('SET_SCROLL_TOP', 0)
+    commit(
+      'SET_SHOW',
+      Object.assign(
+        {
+          show_width: width,
+          show_height: height,
+          rect: rect,
+          section: picture.section,
+          index: picture.index,
+        },
+        picture
+      )
+    )
+    commit('SET_INIT_DATA', {
+      section: picture.section,
+      index: picture.index,
+    })
+    router.push({
+      name: 'preview',
+      params: { id: 'dsaczxcuirewurhsfkjdshfsdjk' },
+    })
+  },
+}
 
 export default {
   namespaced: true,

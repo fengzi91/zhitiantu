@@ -2,19 +2,27 @@
   <v-container class="fill-height">
     <v-row class="text-center" align="center" justify="center">
       <v-col cols="12" sm="8" md="4">
-        <v-card :loading="authLoading ? 'warning' : false">
+        <v-card :loading="registerLoading ? 'warning' : false">
           <v-toolbar color="primary" dark flat>
-            <v-toolbar-title>登录</v-toolbar-title>
+            <v-toolbar-title>注册</v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-btn text large to="/auth/register">
-              还没有账号？
+            <v-btn text large to="/auth/login">
+              已有账号？
             </v-btn>
           </v-toolbar>
           <v-card-text>
-            <v-form v-model="valid" ref="loginForm">
+            <v-form v-model="valid" ref="registerForm">
               <v-text-field
-                label="邮箱/用户名"
-                name="login"
+                label="用户名"
+                name="name"
+                prepend-icon="mdi-account"
+                v-model="name"
+                :rules="nameRules"
+                type="text"
+              ></v-text-field>
+              <v-text-field
+                label="邮箱"
+                name="email"
                 prepend-icon="mdi-email"
                 v-model="email"
                 :rules="emailRules"
@@ -30,16 +38,14 @@
                 prepend-icon="mdi-lock"
                 type="password"
               ></v-text-field>
-              <v-checkbox
-                v-model="remember"
-                label="记住我?"
-                required
-              ></v-checkbox>
             </v-form>
           </v-card-text>
           <v-card-actions class="pl-5 pb-3">
-            <v-btn color="primary" @click="loginSubmit" :disabled="authLoading"
-              >登录</v-btn
+            <v-btn
+              color="primary"
+              @click="registerSubmit"
+              :disabled="registerLoading"
+              >注册</v-btn
             >
             <v-btn text :to="authBackTo">返回</v-btn>
             <v-spacer></v-spacer>
@@ -52,43 +58,41 @@
 <script>
 import { mapGetters } from 'vuex'
 export default {
-  name: 'Login',
+  name: 'Register',
   computed: {
     ...mapGetters(['authBackTo', 'authLoading', 'authRedirectTo']),
   },
   data: () => ({
     valid: false,
     emailRules: [
-      v => !!v || '请填写用户名或邮箱',
-      v => {
-        if (v && v.indexOf('@') > -1) {
-          return (
-            /.+@((vip\.|)qq\.com)|(126\.com)|(163\.com)|(gmail\.com)/.test(v) ||
-            '邮箱格式不正确'
-          )
-        } else {
-          return !/^([_\-\d]).+/.test(v) || '用户名格式不正确'
-        }
-      },
+      v => !!v || '请填写常用邮箱',
+      v =>
+        /.+@((vip\.|)qq\.com)|(126\.com)|(163\.com)|(gmail\.com)/.test(v) ||
+        '邮箱格式不正确,仅支持 @qq.com @126.com @163.com @gmail.com',
     ],
     passwordRules: [
       v => !!v || '请填写密码',
       v => (v && v.length >= 8) || '密码不能少于 8 位',
     ],
+    nameRules: [
+      v => !!v || '请填写用户名',
+      v => (v && v.length >= 3) || '用户名不能少于 3 个字符',
+      v => (v && v.length <= 32 && v.length >= 3) || '用户名不能超过 32 个字符',
+    ],
     email: null,
+    name: null,
     password: null,
-    remember: false,
   }),
   methods: {
-    async loginSubmit() {
+    async registerSubmit() {
       // 进行表单校验后 使用 store 事件登录
-      if (this.$refs.loginForm.validate()) {
-        const loginData = {
+      if (this.$refs.registerForm.validate()) {
+        const registerData = {
           email: this.email,
           password: this.password,
-          remember: this.remember,
+          name: this.name,
         }
-        if (await this.$store.dispatch('auth/login', loginData)) {
+        if (await this.$store.dispatch('auth/register', registerData)) {
           this.$router.replace(this.authRedirectTo)
         }
       }

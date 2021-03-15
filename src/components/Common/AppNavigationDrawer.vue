@@ -1,8 +1,8 @@
 <template>
   <v-navigation-drawer
     v-model="drawer"
-    app
-    clipped
+    absolute
+    temporary
     :mini-variant="$store.state.global.navigationDrawerMini"
   >
     <v-list dense>
@@ -92,6 +92,21 @@ export default {
         name: 'About',
         icon: 'mdi-home',
         handle: { name: 'About' },
+      },
+      {
+        text: '关于',
+        name: 'Index',
+        icon: 'mdi-home',
+        handle: { name: 'Index' },
+      },
+      {
+        text: '分享集',
+        name: 'About',
+        icon: 'mdi-share-variant-outline',
+        handle: {
+          name: 'ViewCollect',
+          params: { id: '3018031e-a1f9-439a-98a2-4ee0df024123' },
+        },
       },
       {
         text: '消息',

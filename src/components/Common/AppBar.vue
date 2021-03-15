@@ -98,13 +98,14 @@
   </v-app-bar>
 </template>
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import SearchInput from '@/components/Common/SearchInput'
 export default {
   name: 'AppBar',
   components: { SearchInput },
   computed: {
     ...mapGetters(['isLoggedIn', 'userinfo', 'checkedLength']),
+    ...mapState('global', ['navigationDrawer']),
   },
   data: () => ({
     items: [
@@ -120,6 +121,26 @@ export default {
         title: '上传图片',
         handler: vm => {
           vm.$store.dispatch('upload/initUpload')
+        },
+      },
+      {
+        icon: 'mdi-share',
+        title: '分享集1',
+        handler: {
+          name: 'ViewCollect',
+          params: {
+            id: '3018031e-a1f9-439a-98a2-4ee0df024123',
+          },
+        },
+      },
+      {
+        icon: 'mdi-share',
+        title: '分享集2',
+        handler: {
+          name: 'ViewCollect',
+          params: {
+            id: '12648f59-0585-4ded-9d57-cfd8b02388e5',
+          },
         },
       },
       {
@@ -143,7 +164,7 @@ export default {
     },
     toggleDrawer() {
       // const state = this.$store.state.global.navigationDrawer
-      this.$store.commit('global/TOGGLE_NAVIGATION_DRAWER_MINI')
+      this.$store.commit('global/SET_NAVIGATION_DRAWER', !this.navigationDrawer)
     },
     clearAll() {
       this.$store.commit('checked/CLEAR')
