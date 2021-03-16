@@ -131,13 +131,10 @@ export default {
         },
       },
       {
-        icon: 'mdi-share',
-        title: '分享集2',
+        icon: 'mdi-share-variant',
+        title: '分享集',
         handler: {
-          name: 'ViewCollect',
-          params: {
-            id: '12648f59-0585-4ded-9d57-cfd8b02388e5',
-          },
+          name: 'UserCollect',
         },
       },
       {

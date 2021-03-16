@@ -13,6 +13,14 @@ export default {
       meta: {
         hideAppBar: false,
       },
+      children: [
+        {
+          path: 'collect',
+          name: 'UserCollect',
+          component: () =>
+            import(/* webpackChunkName: "user" */ '@/views/user/collect'),
+        },
+      ],
     },
     {
       path: 'setting',
