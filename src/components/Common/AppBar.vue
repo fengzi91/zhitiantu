@@ -33,7 +33,7 @@
         <v-menu open-on-hover offset-y>
           <template v-slot:activator="{ on, attrs }">
             <v-avatar size="36" v-bind="attrs" v-on="on">
-              <img :src="userinfo.avatar" />
+              <img :src="userinfo.profile_photo_url" />
             </v-avatar>
           </template>
 
@@ -113,7 +113,7 @@ export default {
         icon: 'mdi-home-account',
         title: '个人主页',
         handler: {
-          name: 'Home',
+          name: 'UserIndex',
         },
       },
       {
@@ -124,13 +124,10 @@ export default {
         },
       },
       {
-        icon: 'mdi-share',
-        title: '分享集1',
+        icon: 'mdi-account-cog',
+        title: '设置',
         handler: {
-          name: 'ViewCollect',
-          params: {
-            id: '3018031e-a1f9-439a-98a2-4ee0df024123',
-          },
+          name: 'UserSetting',
         },
       },
       {

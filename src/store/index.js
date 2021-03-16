@@ -26,3 +26,10 @@ export default store
 export const messageError = (message, timeout = 3000) => {
   store.dispatch('message/error', { message, timeout })
 }
+
+export const success = (message, timeout = 3000) => {
+  store.dispatch('message/success', {
+    message,
+    timeout,
+  })
+}

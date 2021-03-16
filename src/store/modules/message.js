@@ -113,6 +113,13 @@ const actions = {
       timeout,
     })
   },
+  success({ dispatch }, { message, timeout }) {
+    dispatch('pushMessage', {
+      type: 'info',
+      content: message,
+      timeout,
+    })
+  },
 }
 
 export default {

@@ -8,6 +8,7 @@ Vue.use(VueRouter)
 import AuthRoute from './modules/auth'
 import PreviewRoute from './modules/picture'
 import CollectRoute from './modules/collect'
+import UserRoute from './modules/user'
 const routes = [
   {
     path: '/',
@@ -48,6 +49,7 @@ const routes = [
   AuthRoute,
   PreviewRoute,
   CollectRoute,
+  UserRoute,
   {
     path: '*',
     name: 'NotFound',
