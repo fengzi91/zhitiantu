@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '@/views/Home'
 import Index from '@/views/Index'
 import store from '@/store'
 
@@ -13,14 +12,6 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home,
-    meta: {
-      keepAlive: true,
-    },
-  },
-  {
-    path: '/pictures',
-    name: 'Index',
     component: Index,
     meta: {
       keepAlive: true,

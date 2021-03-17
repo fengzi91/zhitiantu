@@ -199,9 +199,7 @@ export default {
     this.containerWidth = this.$refs.container.getBoundingClientRect().width
     this.fetchData()
   },
-  activated() {
-    console.log('页面被重新激活', this.isEditing)
-  },
+  activated() {},
   beforeRouteLeave(to, from, next) {
     if (this.isEditing) {
       this.$store.commit('collect/CLEAR')
@@ -263,13 +261,14 @@ export default {
       }
     },
     // 变更为编辑状态
-    setEditing() {
-      console.log('事件冒泡引起')
-      this.$store.commit('collect/SET_UPDATING_DATA', {
-        collect: this.collect,
-        data: this.data,
-      })
-      this.$store.commit('collect/SET_EDITING', true)
+    async setEditing() {
+      if (this.canEdit) {
+        this.$store.commit('collect/SET_UPDATING_DATA', {
+          collect: this.collect,
+          data: this.data,
+        })
+        this.$store.commit('collect/SET_EDITING', true)
+      }
     },
   },
 }

@@ -121,6 +121,20 @@ export default {
     canPreview: {
       type: Boolean,
       default: true
+    },
+    layoutConfig: {
+      type: Object,
+      default:() => ({
+        targetRowHeight: 180,
+        containerWidth: 0,
+        showWidows: true,
+        containerPadding: {
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+        },
+      })
     }
   },
   data: () => ({
@@ -198,7 +212,6 @@ export default {
       this.$emit('update-height', newHeight)
     },
     prentData(newData) {
-      console.log('渲染数据变化', newData)
       for (const d of newData) {
         this.layout(d.data, d.page)
       }
@@ -218,18 +231,12 @@ export default {
     layout(data, page = 1) {
       return new Promise(resolve => {
         const index = page - 1
+        const config = this.layoutConfig
+        if (config.containerWidth === 0) {
+          config.containerWidth = this.containerWidth
+        }
         const { boxes, containerHeight } = justifiedLayout(
-          data,{
-              targetRowHeight: 180,
-              containerWidth: this.containerWidth,
-              showWidows: true,
-              containerPadding: {
-                top: 0,
-                right: 0,
-                bottom: 0,
-                left: 0,
-              },
-            }
+          data, config
         )
         // 把坐标和图片合并到一起
         const newData = boxes.map((item, index) => {

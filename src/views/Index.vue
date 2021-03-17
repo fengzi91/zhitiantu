@@ -3,6 +3,9 @@
     <picture-list
       :prent-data="data"
       @update-height="setHeight($event)"
+      :layout-config="layoutConfig"
+      :can-preview="true"
+      :can-check="true"
     ></picture-list>
     <v-container
       fluid
@@ -111,6 +114,19 @@ export default {
         this.$vuetify.breakpoint.scrollBarWidth
       )
     },
+    layoutConfig() {
+      return {
+        targetRowHeight: 180,
+        containerWidth: this.containerWidth,
+        showWidows: false,
+        containerPadding: {
+          top: 12,
+          right: 16,
+          bottom: 12,
+          left: 16,
+        },
+      }
+    },
   },
   activated() {
     const current = store.state.picture.currentViewIndex
@@ -143,14 +159,6 @@ export default {
         this.disabledLoad = false
       })
     },
-    '$store.state.checked.clearCount'(count) {
-      if (count > 0) {
-        this.data.forEach(page => {
-          page.data.forEach(i => (i.isChecked = false))
-        })
-        this.$store.commit('checked/SET_CLEAR')
-      }
-    },
     keyword() {
       this.debouncedLoadData(true)
     },
@@ -160,7 +168,6 @@ export default {
   },
   methods: {
     async fetchIndex(reset = false) {
-      console.log(reset)
       this.loadCount++
       if (this.picturesLoading || this.disabledLoad) return
       this.picturesLoading = true
@@ -318,9 +325,6 @@ export default {
         return
       }
       this.preview(i, index)
-    },
-    setHeight(height) {
-      console.log(height)
     },
   },
 }

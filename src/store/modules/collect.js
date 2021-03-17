@@ -29,7 +29,6 @@ const mutations = {
     state.loading = !state.loading
   },
   SET_UPDATING_DATA(state, data) {
-    console.log('执行了设置 data')
     state.updatingPictures = cloneDeep(data.collect.pictures)
     state.updatingInfo = cloneDeep(data.collect)
   },
@@ -79,8 +78,7 @@ const actions = {
     commit('checked/CLEAR', null, { root: true })
   },
   // 移除指定数据
-  remove({ commit, dispatch, rootState }) {
-    console.log(rootState, commit)
+  remove({ dispatch, rootState }) {
     dispatch('deletePicture', rootState.checked.data)
   },
   removeReverse({ dispatch, state, rootState }) {

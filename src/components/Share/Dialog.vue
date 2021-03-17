@@ -203,10 +203,10 @@ export default {
           password: this.password,
           pictures: this.$store.state.checked.data.map(i => i.id),
         })
-        console.log(data)
         this.link = data.link
         this.full_link = data.full_link
         this.collectCreated = true
+        this.$store.commit('checked/CLEAR')
       } catch (e) {
         console.log(e)
       } finally {
