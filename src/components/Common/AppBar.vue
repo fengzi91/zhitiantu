@@ -17,14 +17,6 @@
       <v-spacer></v-spacer>
       <search-input></search-input>
       <v-spacer></v-spacer>
-      <v-btn
-        icon
-        text
-        @click="$store.dispatch('upload/initUpload')"
-        class="mr-2"
-      >
-        <v-icon>mdi-upload</v-icon>
-      </v-btn>
       <v-btn :to="{ name: 'Login' }" text v-if="!isLoggedIn">
         <span class="mr-2">登录/注册</span>
         <v-icon>mdi-auth</v-icon>
@@ -100,6 +92,8 @@
 <script>
 import { mapGetters, mapState } from 'vuex'
 import SearchInput from '@/components/Common/SearchInput'
+import { menu } from '@/data/user'
+
 export default {
   name: 'AppBar',
   components: { SearchInput },
@@ -108,43 +102,7 @@ export default {
     ...mapState('global', ['navigationDrawer']),
   },
   data: () => ({
-    items: [
-      {
-        icon: 'mdi-home-account',
-        title: '个人主页',
-        handler: {
-          name: 'UserIndex',
-        },
-      },
-      {
-        icon: 'mdi-upload',
-        title: '上传图片',
-        handler: vm => {
-          vm.$store.dispatch('upload/initUpload')
-        },
-      },
-      {
-        icon: 'mdi-account-cog',
-        title: '设置',
-        handler: {
-          name: 'UserSetting',
-        },
-      },
-      {
-        icon: 'mdi-share-variant',
-        title: '分享集',
-        handler: {
-          name: 'UserCollect',
-        },
-      },
-      {
-        icon: 'mdi-logout',
-        title: '退出',
-        handler: vm => {
-          vm.$store.dispatch('auth/logout')
-        },
-      },
-    ],
+    items: menu,
   }),
   methods: {
     menuHandler(index) {

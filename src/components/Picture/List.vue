@@ -37,7 +37,7 @@
               'background-color': item.isChecked ? '#e8f0fe' : 'transpter',
             }"
             :class="[
-              item.isChecked ? 'tw-bg-blue-400' : '',
+              item.isChecked && canCheck ? 'tw-bg-blue-400' : '',
               hover ? 'picture-background' : '',
             ]"
             :ref="`show-image-${i}-${index}`"
@@ -51,7 +51,7 @@
               style="top: 4px; left: 4px; z-index:9; width: 22px;height: 22px;"
               :color="item.isChecked ? 'blue' : 'gray'"
               @click.stop="handleCheck(i, index)"
-              v-if="hover || checkedLength > 0"
+              v-if="(hover || checkedLength > 0) && canCheck"
             >
               <v-icon
                 :color="item.isChecked ? 'blue' : 'gray'"
@@ -72,7 +72,7 @@
               class="tw-absolute tw-z-20"
               style="bottom: 0; right: 0; z-index:9"
               @click.stop="preview(i, index)"
-              v-if="hover && checkedLength > 0"
+              v-if="hover && checkedLength > 0 && canCheck && canPreview"
             >
               <v-icon color="gray">mdi-magnify-plus-outline</v-icon>
             </v-btn>
@@ -82,7 +82,9 @@
               :height="item.height"
               :width="item.width"
               class="picture-transition"
-              :class="item.isChecked ? 'tw-transform tw-scale-90' : ''"
+              :class="
+                item.isChecked && canCheck ? 'tw-transform tw-scale-90' : ''
+              "
             />
             <div
               v-show="hover"
@@ -98,9 +100,9 @@
 </template>
 <script>
 import { mapGetters } from 'vuex'
-import layoutHelper from '@/utils/justifiedLayout'
 import { getPreviewImageStyle } from '@/utils/preview'
 import store from '@/store'
+import justifiedLayout from "justified-layout";
 
 export default {
   props: {
@@ -112,6 +114,14 @@ export default {
       type: Number || String,
       default: () => 0,
     },
+    canCheck: {
+      type: Boolean,
+      default: false
+    },
+    canPreview: {
+      type: Boolean,
+      default: true
+    }
   },
   data: () => ({
     data: [],
@@ -188,6 +198,7 @@ export default {
       this.$emit('update-height', newHeight)
     },
     prentData(newData) {
+      console.log('渲染数据变化', newData)
       for (const d of newData) {
         this.layout(d.data, d.page)
       }
@@ -207,10 +218,18 @@ export default {
     layout(data, page = 1) {
       return new Promise(resolve => {
         const index = page - 1
-        const { boxes, containerHeight } = layoutHelper(
-          data,
-          this.containerWidth,
-          12
+        const { boxes, containerHeight } = justifiedLayout(
+          data,{
+              targetRowHeight: 180,
+              containerWidth: this.containerWidth,
+              showWidows: true,
+              containerPadding: {
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
+              },
+            }
         )
         // 把坐标和图片合并到一起
         const newData = boxes.map((item, index) => {
@@ -259,7 +278,6 @@ export default {
       // 取当前显示的数据所有 ID
       this.$store.commit('picture/SET_DATA', this.data)
       const scrollTop = document.scrollingElement.scrollTop
-      console.log('滚动条高度', scrollTop)
       this.$store.commit('picture/SET_INIT_SCROLL_TOP', scrollTop)
       this.$store.commit('picture/SET_SCROLL_TOP', 0)
       this.$store.commit(
@@ -282,7 +300,7 @@ export default {
       })
     },
     check(i, index) {
-      if (this.checkedLength > 0) {
+      if (this.checkedLength > 0 || !this.canPreview) {
         this.handleCheck(i, index)
         return
       }

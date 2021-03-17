@@ -17,3 +17,7 @@ export const checkPassword = (id, password) => {
     password,
   })
 }
+
+export const update = data => {
+  return request.put(`collect/${data.link}`, data)
+}

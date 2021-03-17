@@ -1,4 +1,4 @@
-import { uploadFile } from '@/mock/upload'
+import { uploadFile } from '@/api/upload'
 import { computedSize } from '@/utils'
 import Vue from 'vue'
 const state = {
@@ -6,6 +6,7 @@ const state = {
   showSelect: 0,
   files: [],
   totalSize: 0,
+  uploadSuccessAfter: null,
 }
 
 const mutations = {
@@ -38,6 +39,9 @@ const mutations = {
       })
     }
   },
+  SET_UPLOAD_SUCCESS_AFTER(state, payload) {
+    state.uploadSuccessAfter = payload
+  },
 }
 
 const actions = {
@@ -51,10 +55,9 @@ const actions = {
     const key = state.files.length
     data.key = key
     commit('ADD', data)
-    console.log('key ==> ', key, 'fileInfo => ', state.files)
     dispatch('upload', key)
   },
-  upload({ state, commit }, fileKey) {
+  upload({ state, commit, dispatch }, fileKey) {
     if (state.files[fileKey].deleted) return
     const file = state.files[fileKey]._file
     const formData = new FormData()
@@ -68,6 +71,13 @@ const actions = {
           value: 'complete',
         })
         commit('UPDATE_FILE_STATE', { fileKey, key: res.data })
+        if (state.uploadSuccessAfter) {
+          typeof state.uploadSuccessAfter === 'string'
+            ? dispatch(state.uploadSuccessAfter, res.data, { root: true })
+            : typeof state.uploadSuccessAfter === 'function'
+            ? state.uploadSuccessAfter()
+            : null
+        }
       })
       .catch(() => {
         commit('UPDATE_FILE_STATE', { fileKey, key: 'upload', value: 'error' })

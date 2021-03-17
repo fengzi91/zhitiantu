@@ -15,3 +15,7 @@ export const register = data => {
     data,
   })
 }
+
+export const csrfCookie = () => {
+  return request.get('/sanctum/csrf-cookie')
+}

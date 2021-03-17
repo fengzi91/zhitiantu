@@ -1,5 +1,5 @@
 import axios from 'axios'
-import store from '@/store'
+// import store from '@/store'
 import { messageError } from '@/store'
 import router from '@/router'
 // create an axios instance
@@ -13,13 +13,6 @@ const service = axios.create({
 service.interceptors.request.use(
   config => {
     // do something before request is sent
-
-    if (store.getters.token) {
-      // let each request carry token
-      // ['X-Token'] is a custom headers key
-      // please modify it according to the actual situation
-      config.headers['Authorization'] = `Bearer ${store.getters.token}`
-    }
     return config
   },
   error => {

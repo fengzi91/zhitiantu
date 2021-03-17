@@ -53,15 +53,44 @@
     <v-container>
       <v-row>
         <v-col ref="container">
-          <div
-            class="tw-my-md-8 tw-my-0 tw-mt-1 tw-bg-gradient-to-b"
-            v-if="collect.title"
-          >
-            <v-card-title class="">{{ collect.title }}</v-card-title>
+          <div class="tw-my-md-8 tw-my-0 tw-mt-8 tw-bg-gradient-to-b">
+            <v-slide-y-transition mode="out-in">
+              <template v-if="!isEditing">
+                <v-card-title
+                  v-if="collect.title"
+                  key="title"
+                  @click="setEditing"
+                  >{{ collect.title }}</v-card-title
+                >
+                <v-card-title
+                  v-else-if="canEdit"
+                  key="title"
+                  @click="setEditing"
+                  >创建于 {{ collect.created_at }}</v-card-title
+                >
+              </template>
+              <template v-if="isEditing">
+                <div class="ml-4" key="input">
+                  <v-text-field
+                    label="标题"
+                    v-model="title"
+                    placeholder="输入一个标题"
+                  ></v-text-field>
+                  <v-text-field
+                    label="设置密码"
+                    prepend-inner-icon="mdi-lock"
+                    v-model="editPassword"
+                    hint="如果不需要修改密码，请留空"
+                  ></v-text-field>
+                </div>
+              </template>
+            </v-slide-y-transition>
           </div>
           <picture-list
             :prent-data="data"
             :width="containerWidth"
+            :can-check="canEdit && isEditing"
+            :can-preview="!isEditing"
           ></picture-list>
         </v-col>
       </v-row>
@@ -70,7 +99,8 @@
 </template>
 <script>
 import { checkPassword, fetchData } from '@/api/collect'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
+import _ from 'lodash'
 import PictureList from '@/components/Picture/List'
 export default {
   components: {
@@ -78,6 +108,9 @@ export default {
   },
   computed: {
     ...mapGetters(['checkedLength']),
+    ...mapState({
+      isEditing: state => state.collect.isEditing,
+    }),
     id() {
       return this.$route.params.id || 0
     },
@@ -104,9 +137,60 @@ export default {
         })
       },
     },
+    canEdit() {
+      return (
+        this.collect.user_id === _.get(this.$store.state.auth, 'userInfo.id', 0)
+      )
+    },
+    title: {
+      get() {
+        return this.$store.state.collect.updatingInfo.title
+      },
+      set(title) {
+        this.$store.commit('collect/UPDATE_INFO', {
+          key: 'title',
+          value: title,
+        })
+      },
+    },
+    editPassword: {
+      get() {
+        return this.$store.state.collect.updatingInfo.password
+      },
+      set(password) {
+        this.$store.commit('collect/UPDATE_INFO', {
+          key: 'password',
+          value: password,
+        })
+      },
+    },
   },
   watch: {
     '$store.state.global.navigationDrawerMini'() {},
+    isEditing(editing) {
+      if (editing) {
+        this.data = [
+          {
+            page: 1,
+            data: this.$store.state.collect.updatingPictures,
+          },
+        ]
+      }
+    },
+    '$store.state.collect.updatingPictures'() {
+      this.data = [
+        {
+          page: 1,
+          data: this.$store.state.collect.updatingPictures,
+        },
+      ]
+    },
+    '$store.state.collect.updated'(isUpdated) {
+      if (isUpdated) {
+        this.fetchData()
+        this.$store.commit('collect/UPDATED', false)
+      }
+    },
   },
   created() {
     this.newPassword = this.password
@@ -114,6 +198,15 @@ export default {
   mounted() {
     this.containerWidth = this.$refs.container.getBoundingClientRect().width
     this.fetchData()
+  },
+  activated() {
+    console.log('页面被重新激活', this.isEditing)
+  },
+  beforeRouteLeave(to, from, next) {
+    if (this.isEditing) {
+      this.$store.commit('collect/CLEAR')
+    }
+    next()
   },
   data: () => ({
     collect: {
@@ -168,6 +261,15 @@ export default {
       } finally {
         this.passwordLoading = false
       }
+    },
+    // 变更为编辑状态
+    setEditing() {
+      console.log('事件冒泡引起')
+      this.$store.commit('collect/SET_UPDATING_DATA', {
+        collect: this.collect,
+        data: this.data,
+      })
+      this.$store.commit('collect/SET_EDITING', true)
     },
   },
 }

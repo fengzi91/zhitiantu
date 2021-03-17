@@ -51,6 +51,7 @@
 </template>
 <script>
 import { mapGetters } from 'vuex'
+import { csrfCookie } from '@/api/auth'
 export default {
   name: 'Login',
   computed: {
@@ -88,6 +89,7 @@ export default {
           password: this.password,
           remember: this.remember,
         }
+        await csrfCookie()
         if (await this.$store.dispatch('auth/login', loginData)) {
           this.$router.replace(this.authRedirectTo)
         }

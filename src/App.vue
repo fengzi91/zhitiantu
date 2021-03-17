@@ -1,7 +1,8 @@
 <template>
   <v-app>
     <app-navigation-drawer v-if="navigationDrawer"></app-navigation-drawer>
-    <app-bar v-if="showAppBar" />
+    <collect-edit-app-bar v-if="isEditingCollect"></collect-edit-app-bar>
+    <app-bar v-else-if="showAppBar" />
     <v-main>
       <transition name="fade" mode="in-out">
         <keep-alive>
@@ -26,15 +27,19 @@
 <script>
 import AppBar from './components/Common/AppBar'
 import AppNavigationDrawer from '@/components/Common/AppNavigationDrawer'
+import CollectEditAppBar from '@/components/Common/CollectEditAppBar'
 import { mapGetters, mapState } from 'vuex'
 import Message from '@/components/Message/Index'
 import Upload from '@/components/Upload/Index'
+// import { csrfCookie } from '@/api/auth'
+
 export default {
   name: 'App',
 
   components: {
     Message,
     AppNavigationDrawer,
+    CollectEditAppBar,
     AppBar,
     Upload,
   },
@@ -42,8 +47,11 @@ export default {
   computed: {
     ...mapGetters(['showAppBar', 'isLoggedIn']),
     ...mapState('global', ['navigationDrawer']),
+    ...mapState({ isEditingCollect: state => state.collect.isEditing }),
   },
-
+  created() {
+    // csrfCookie()
+  },
   data: () => ({}),
   methods: {},
 }
