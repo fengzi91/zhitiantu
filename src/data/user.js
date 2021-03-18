@@ -29,7 +29,7 @@ export const menu = [
       },
       {
         title: '收藏',
-        icon: 'mdi-heart',
+        icon: 'mdi-bookmark',
         handle: '',
       },
     ],
@@ -50,7 +50,7 @@ export const menu = [
       },
       {
         title: '收藏',
-        icon: 'mdi-heart',
+        icon: 'mdi-bookmark',
         handle: '',
       },
     ],

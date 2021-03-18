@@ -7,7 +7,7 @@ export const global = [
   },
   {
     text: '分享集',
-    name: 'About',
+    name: 'Collect',
     icon: 'mdi-share-variant-outline',
     handle: {
       name: 'CollectIndex',

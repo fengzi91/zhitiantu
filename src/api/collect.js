@@ -8,6 +8,12 @@ export const fetchData = (id, params) => {
   })
 }
 
+export const fetchIndex = params => {
+  return request.get(`collect`, {
+    params,
+  })
+}
+
 export const create = data => {
   return request({ url: `collect`, data, method: 'post' })
 }

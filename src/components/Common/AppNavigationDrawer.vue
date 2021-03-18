@@ -37,7 +37,7 @@
       </v-list>
       <template v-if="isPicturesListPage && tags.length > 0">
         <v-divider></v-divider>
-        <div class="tw-my-4">
+        <div class="tw-my-2">
           <v-subheader>筛选图片</v-subheader>
           <div class="tw-p-2">
             <v-chip-group active-class="primary--text" column>
