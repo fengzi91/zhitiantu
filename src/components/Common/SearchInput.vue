@@ -2,6 +2,7 @@
   <div
     class="v-input v-input--hide-details v-input--dense theme--dark v-text-field v-text-field--single-line v-text-field--solo v-text-field--solo-inverted v-text-field--solo-flat v-text-field--is-booted v-text-field--enclosed"
     :class="isFocused || keyword ? 'v-input--is-focused' : ''"
+    v-show="isShow"
   >
     <div class="v-input__control">
       <div class="v-input__slot">
@@ -11,7 +12,7 @@
             class="v-label theme--dark"
             style="left: 0px; right: auto; position: absolute;"
             v-if="!isFocused && !keyword"
-            >搜索</label
+            >{{ placeHolder }}</label
           ><input
             id="input-search-1"
             type="text"
@@ -44,6 +45,8 @@
   </div>
 </template>
 <script>
+import { searchPlaceholder, isShow } from '@/data/search'
+
 export default {
   data: () => ({
     isFocused: false,
@@ -51,11 +54,20 @@ export default {
   computed: {
     keyword: {
       get() {
-        return this.$store.state.search.keyword
+        return this.$store.state.search.keywords[this.$route.name]
       },
       set(value) {
-        this.$store.commit('search/SET_KEYWORD', value)
+        this.$store.commit('search/SET_KEYWORD', {
+          key: this.$route.name,
+          value,
+        })
       },
+    },
+    placeHolder() {
+      return searchPlaceholder(this.$route.name)
+    },
+    isShow() {
+      return isShow(this.$route.name)
     },
   },
   methods: {

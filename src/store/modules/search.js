@@ -1,10 +1,12 @@
+import Vue from 'vue'
 const state = {
   keyword: undefined,
+  keywords: {},
 }
 
 const mutations = {
-  SET_KEYWORD(state, keyword) {
-    state.keyword = keyword
+  SET_KEYWORD(state, { key, value }) {
+    Vue.set(state.keywords, key, value)
   },
 }
 

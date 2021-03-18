@@ -105,7 +105,7 @@ export default {
   }),
   computed: {
     ...mapGetters(['checkedLength']),
-    ...mapState('search', ['keyword']),
+
     ...mapState({
       filterTag: state => state.tag.currentId,
     }),
@@ -128,6 +128,9 @@ export default {
           left: 16,
         },
       }
+    },
+    keyword() {
+      return this.$store.state.search.keywords[this.$route.name]
     },
   },
   activated() {

@@ -26,7 +26,14 @@
         <template v-for="item in data">
           <div class="tw-flex" :key="item.link">
             <div class="tw-flex-none tw-mt-4 tw-mr-4 tw-flex tw-flex-col">
-              <v-avatar>
+              <v-avatar
+                @click="
+                  $router.push({
+                    name: 'UserIndex',
+                    params: { id: item.user.id },
+                  })
+                "
+              >
                 <v-img :src="item.user.profile_photo_url" />
               </v-avatar>
             </div>
@@ -148,6 +155,11 @@ import { fetchIndex } from '@/api/collect'
 import justifiedLayout from 'justified-layout'
 import { debounce } from 'lodash'
 export default {
+  computed: {
+    keyword() {
+      return this.$store.state.search.keywords[this.$route.name]
+    },
+  },
   data: () => ({
     data: [],
     loading: false,
@@ -179,8 +191,14 @@ export default {
     selectSort(index) {
       this.changeSort(this.sorts[index])
     },
+    keyword(newKeyword, oldKeyword) {
+      if (newKeyword !== oldKeyword) {
+        this.debounceSearch(true)
+      }
+    },
   },
   created() {
+    this.debounceSearch = debounce(this.fetchIndex, 500)
     this.debounceOnIntersect = debounce(this.onIntersect, 200)
   },
   async mounted() {
@@ -189,8 +207,6 @@ export default {
   },
   methods: {
     onIntersect(entries) {
-      // More information about these options
-      // is located here: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
       if (entries[0].intersectionRatio >= 0.5) {
         if (!this.loading) {
           this.fetchIndex(this.data.length <= 0)
@@ -198,7 +214,6 @@ export default {
       }
     },
     async fetchIndex(reset = false) {
-      console.log('执行', this.current_page, this.data.length)
       if (this.loading) return
       this.loading = true
       try {
@@ -216,6 +231,9 @@ export default {
         }
         if (reset) {
           this.$vuetify.goTo(0)
+        }
+        if (this.keyword) {
+          params.keyword = this.keyword
         }
         const { data, meta } = await fetchIndex(params)
         this.current_page = meta.current_page

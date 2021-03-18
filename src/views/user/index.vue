@@ -24,7 +24,12 @@
             <v-tab
               v-for="item in items"
               :key="item.name"
-              @click="$router.push(item.handle)"
+              @click="
+                $router.push({
+                  name: item.handle.name,
+                  params: { id: user_id },
+                })
+              "
             >
               {{ item.name }}
             </v-tab>
@@ -50,9 +55,17 @@ export default {
       },
       set() {},
     },
+    user_id() {
+      return this.$route.params.id || this.userinfo.id
+    },
+  },
+  watch: {
+    user_id() {
+      console.log(this.user_id)
+    },
   },
   mounted() {
-    console.log(this.$route)
+    console.log(this.user_id)
   },
   data: () => ({
     isSelf: true,

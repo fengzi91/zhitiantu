@@ -20,17 +20,17 @@ export const menu = [
       {
         title: '创建的',
         icon: 'mdi-file-upload',
-        handle: '',
+        handler: 'UserCollect',
       },
       {
         title: '赞过',
         icon: 'mdi-thumb-up',
-        handle: '',
+        handler: '',
       },
       {
         title: '收藏',
         icon: 'mdi-bookmark',
-        handle: '',
+        handler: '',
       },
     ],
   },
@@ -41,17 +41,17 @@ export const menu = [
       {
         title: '上传的',
         icon: 'mdi-file-upload',
-        handle: '',
+        handler: '',
       },
       {
         title: '赞过',
         icon: 'mdi-thumb-up',
-        handle: '',
+        handler: '',
       },
       {
         title: '收藏',
         icon: 'mdi-bookmark',
-        handle: '',
+        handler: '',
       },
     ],
   },

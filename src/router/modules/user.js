@@ -6,7 +6,7 @@ export default {
 
   children: [
     {
-      path: '',
+      path: ':id?',
       name: 'UserIndex',
       component: () =>
         import(/* webpackChunkName: "user" */ '@/views/user/index'),
