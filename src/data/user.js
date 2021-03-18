@@ -72,6 +72,9 @@ export const menu = [
       {
         icon: 'mdi-shield-account',
         title: '安全设置',
+        handler: {
+          name: 'UserSafeSetting',
+        },
       },
       {
         icon: 'mdi-account-lock',

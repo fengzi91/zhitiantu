@@ -34,5 +34,17 @@ export default {
         keepAlive: false,
       },
     },
+    {
+      path: 'setting/password',
+      name: 'UserSafeSetting',
+      component: () =>
+        import(/* webpackChunkName: "user" */ '@/views/user/setting/safe'),
+      meta: {
+        center: true,
+        auth: true,
+        navigation: false,
+        keepAlive: false,
+      },
+    },
   ],
 }

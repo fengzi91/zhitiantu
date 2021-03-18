@@ -58,19 +58,18 @@ const actions = {
       }
     } catch (e) {
       let content = '登录失败，服务器错误！'
-      if (_.get(e, 'response.data.message', false)) {
-        content = e.response.data.message
+      if (!_.get(e, 'response.data.message', false)) {
+        dispatch(
+          'message/pushMessage',
+          {
+            type: 'error',
+            info: content,
+            content,
+            timeout: 3000,
+          },
+          { root: true }
+        )
       }
-      dispatch(
-        'message/pushMessage',
-        {
-          type: 'error',
-          info: content,
-          content,
-          timeout: 3000,
-        },
-        { root: true }
-      )
     } finally {
       commit('TOGGLE_LOADING')
     }

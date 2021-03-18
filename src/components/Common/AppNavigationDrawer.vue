@@ -19,8 +19,8 @@
         <v-toolbar-title>织田图</v-toolbar-title>
       </div>
       <v-divider></v-divider>
-      <v-list nav>
-        <v-list-item-group color="primary">
+      <v-list nav dense>
+        <v-list-item-group color="primary" dense>
           <v-list-item
             v-for="(item, index) in global"
             :key="index"
