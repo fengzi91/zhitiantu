@@ -11,11 +11,49 @@ export const menu = [
     },
   },
   {
-    icon: 'mdi-upload',
-    title: '上传图片',
-    handler: vm => {
-      vm.$store.dispatch('upload/initUpload')
+    icon: 'mdi-share-variant',
+    title: '分享集',
+    handler: {
+      name: 'UserCollect',
     },
+    children: [
+      {
+        title: '创建的',
+        icon: 'mdi-file-upload',
+        handle: '',
+      },
+      {
+        title: '赞过',
+        icon: 'mdi-thumb-up',
+        handle: '',
+      },
+      {
+        title: '收藏',
+        icon: 'mdi-heart',
+        handle: '',
+      },
+    ],
+  },
+  {
+    icon: 'mdi-image-multiple',
+    title: '图片',
+    children: [
+      {
+        title: '上传的',
+        icon: 'mdi-file-upload',
+        handle: '',
+      },
+      {
+        title: '赞过',
+        icon: 'mdi-thumb-up',
+        handle: '',
+      },
+      {
+        title: '收藏',
+        icon: 'mdi-heart',
+        handle: '',
+      },
+    ],
   },
   {
     icon: 'mdi-account-cog',
@@ -23,13 +61,23 @@ export const menu = [
     handler: {
       name: 'UserSetting',
     },
-  },
-  {
-    icon: 'mdi-share-variant',
-    title: '分享集',
-    handler: {
-      name: 'UserCollect',
-    },
+    children: [
+      {
+        icon: 'mdi-account-edit',
+        title: '基本资料',
+        handler: {
+          name: 'UserSetting',
+        },
+      },
+      {
+        icon: 'mdi-shield-account',
+        title: '安全设置',
+      },
+      {
+        icon: 'mdi-account-lock',
+        title: '隐私设置',
+      },
+    ],
   },
   {
     icon: 'mdi-logout',

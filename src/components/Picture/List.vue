@@ -213,6 +213,11 @@ export default {
     },
     prentData(newData) {
       for (const d of newData) {
+        // 如果有第一页数据 清空所有数据
+        if (d.page === 1) {
+          this.data = []
+          this.containerHeight = [10]
+        }
         this.layout(d.data, d.page)
       }
     },

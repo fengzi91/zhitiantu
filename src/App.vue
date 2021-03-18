@@ -1,6 +1,8 @@
 <template>
   <v-app>
-    <app-navigation-drawer v-if="navigationDrawer"></app-navigation-drawer>
+    <user-navigation v-if="isLoggedIn"></user-navigation>
+    <app-navigation-drawer v-else-if="!isLoggedIn"></app-navigation-drawer>
+
     <collect-edit-app-bar v-if="isEditingCollect"></collect-edit-app-bar>
     <app-bar v-else-if="showAppBar" />
     <v-main>
@@ -31,12 +33,14 @@ import CollectEditAppBar from '@/components/Common/CollectEditAppBar'
 import { mapGetters, mapState } from 'vuex'
 import Message from '@/components/Message/Index'
 import Upload from '@/components/Upload/Index'
+import UserNavigation from '@/components/Common/UserNavigation'
 // import { csrfCookie } from '@/api/auth'
 
 export default {
   name: 'App',
 
   components: {
+    UserNavigation,
     Message,
     AppNavigationDrawer,
     CollectEditAppBar,
@@ -48,9 +52,12 @@ export default {
     ...mapGetters(['showAppBar', 'isLoggedIn']),
     ...mapState('global', ['navigationDrawer']),
     ...mapState({ isEditingCollect: state => state.collect.isEditing }),
+    inUserInfoPage() {
+      return this.$route.matched.some(record => record.name === 'User')
+    },
   },
   created() {
-    // csrfCookie()
+    this.$store.dispatch('tag/getTags')
   },
   data: () => ({}),
   methods: {},

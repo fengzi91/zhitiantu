@@ -11,7 +11,7 @@ import UserRoute from './modules/user'
 const routes = [
   {
     path: '/',
-    name: 'Home',
+    name: 'Index',
     component: Index,
     meta: {
       keepAlive: true,
@@ -58,12 +58,11 @@ const router = new VueRouter({
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (
-      (to.name === 'Home' || to.name === 'ViewCollect') &&
+      (to.name === 'Index' || to.name === 'ViewCollect') &&
       from.name === 'preview' &&
       top !== 0
     ) {
       const scrollTop = savedPosition.y + store.state.picture.scrollTop
-      console.log('操作滚动条？', scrollTop)
       return {
         x: 0,
         y: scrollTop,

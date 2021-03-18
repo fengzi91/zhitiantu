@@ -1,8 +1,14 @@
 <template>
   <v-container>
     <v-row justify="center">
-      <v-col cols="8">
-        <v-card flat color="gray" class="tw-mt-20" elevation="1">
+      <v-col cols="10">
+        <v-card
+          flat
+          color="gray"
+          class="tw-mt-20"
+          elevation="1"
+          v-if="!isSelf || $route.name === 'UserIndex'"
+        >
           <v-card-text class="tw-flex tw-p-6">
             <v-avatar size="120" class="tw-shadow-sm">
               <v-img :src="userinfo.profile_photo_url"></v-img>
@@ -37,7 +43,6 @@ export default {
     ...mapGetters(['userinfo']),
     tab: {
       get() {
-        console.log(this.$route)
         const index = this.items.findIndex(
           i => i.handle.name === this.$route.name
         )
@@ -46,7 +51,11 @@ export default {
       set() {},
     },
   },
+  mounted() {
+    console.log(this.$route)
+  },
   data: () => ({
+    isSelf: true,
     items: [
       {
         name: '动态',

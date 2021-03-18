@@ -15,9 +15,6 @@
           {{ userinfo.introduction }}
         </div>
       </div>
-      <div v-else class="tw-m-6">
-        <v-toolbar-title>织田图</v-toolbar-title>
-      </div>
       <v-divider></v-divider>
       <v-list nav>
         <v-list-item-group color="primary">
@@ -35,24 +32,7 @@
           </v-list-item>
         </v-list-item-group>
       </v-list>
-      <template v-if="isPicturesListPage && tags.length > 0">
-        <v-divider></v-divider>
-        <div class="tw-my-4">
-          <v-subheader>筛选图片</v-subheader>
-          <div class="tw-p-2">
-            <v-chip-group active-class="primary--text" column>
-              <v-chip
-                v-for="{ name, count, id } in tags"
-                :key="name"
-                @click="filterTag(id)"
-              >
-                {{ name }}({{ count }})
-              </v-chip>
-            </v-chip-group>
-          </div>
-        </div>
-      </template>
-      <v-list dense nav v-if="isLoggedIn">
+      <v-list dense nav>
         <v-subheader>我的</v-subheader>
         <template v-for="(item, index) in items">
           <v-list-item
@@ -93,32 +73,17 @@
         </template>
       </v-list>
       <v-spacer></v-spacer>
-      <div class="tw-text-center tw-my-2">
-        <p class="tw-my-1">
-          <a
-            href="https://beian.miit.gov.cn/"
-            target="_blank"
-            class="text-decoration-none grey--text text--lighten-1"
-            >京ICP备 04000001号</a
-          >
-        </p>
-        <p class="tw-my-1">&copy; zhitiantu.com</p>
-      </div>
+      <div class="tw-text-center tw-my-2">&copy; zhitiantu.com</div>
     </div>
   </v-navigation-drawer>
 </template>
 <script>
 import { menu } from '@/data/user'
 import { global } from '@/data/menu'
-import { mapGetters, mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 export default {
   computed: {
     ...mapGetters(['userinfo', 'isLoggedIn']),
-    ...mapState('tag', ['tags']),
-    filter() {
-      console.log(this.$store.state.tag.currentId)
-      return this.$store.state.tag.currentId
-    },
     items() {
       return menu.map(i => {
         if (!i.children) {
@@ -126,9 +91,6 @@ export default {
         }
         return i
       })
-    },
-    isPicturesListPage() {
-      return this.$route.name === 'Index'
     },
   },
   data: () => ({
@@ -152,9 +114,6 @@ export default {
         : typeof handle === 'function'
         ? handle(this)
         : null
-    },
-    filterTag(id) {
-      this.$store.commit('tag/SET_CURRENT_ID', id)
     },
   },
 }

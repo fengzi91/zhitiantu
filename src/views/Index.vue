@@ -76,7 +76,7 @@
 
 <script>
 import { index } from '@/api/pictures'
-import layoutHelper from '@/utils/justifiedLayout'
+// import layoutHelper from '@/utils/justifiedLayout'
 import { debounce } from 'lodash'
 import { getPreviewImageStyle } from '@/utils/preview'
 import store from '@/store'
@@ -106,7 +106,9 @@ export default {
   computed: {
     ...mapGetters(['checkedLength']),
     ...mapState('search', ['keyword']),
-    ...mapState('filter', ['filter']),
+    ...mapState({
+      filterTag: state => state.tag.currentId,
+    }),
     containerWidth() {
       return (
         this.$vuetify.breakpoint.width -
@@ -162,7 +164,7 @@ export default {
     keyword() {
       this.debouncedLoadData(true)
     },
-    filter() {
+    filterTag() {
       this.debouncedLoadData(true)
     },
   },
@@ -175,14 +177,16 @@ export default {
         const params = {
           page: 1,
           keyword: this.keyword,
-          filter: this.filter,
+        }
+        if (this.filterTag > 0) {
+          params.tag = this.filterTag
         }
         if (!reset) {
           params.page = ++this.current_page
         } else {
           this.refreshData()
         }
-        const { data, meta, facets } = await index(params)
+        const { data, meta } = await index(params)
         this.current_page = meta.current_page
         if (reset) {
           this.$vuetify.goTo(0)
@@ -193,9 +197,6 @@ export default {
         this.data.push({ page: this.current_page, data })
         if (meta.current_page === meta.last_page || data.length <= 0) {
           this.noMoreData = true
-        }
-        if (facets) {
-          this.$store.commit('filter/SET_DATA', facets)
         }
         this.picturesLoading = false
         this.loadDataError = false
@@ -212,50 +213,50 @@ export default {
       this.data = []
       this.current_page = 1
     },
-    /**
-     * 重新渲染所有数据
-     * @param data
-     * @returns {Promise<void>}
-     */
-    async layoutAllData(data) {
-      for (const d of data) {
-        this.layout(d.data, d.key)
-      }
-    },
-    layout(data, page = 1) {
-      return new Promise(resolve => {
-        const index = page - 1
-        const { boxes, containerHeight } = layoutHelper(
-          data,
-          this.containerWidth,
-          12
-        )
-        // 把坐标和图片合并到一起
-        const newData = boxes.map((item, index) => {
-          const picture = { ...data[index] }
-          picture._width = picture.width
-          picture._height = picture.height
-          picture.isChecked = false
-          picture.isShow = true
-          return Object.assign(picture, item)
-        })
-        // 记录一下 top
-        let top = 76
-        if (this.data.length > 0) {
-          top = this.data.reduce((i, n) => i + n.containerHeight, top)
-        }
-        const currentData = {
-          key: page,
-          data: newData,
-          boxes,
-          containerHeight,
-          top,
-        }
-        this.$set(this.data, index, currentData)
-        this.$set(this.containerHeight, index, containerHeight)
-        resolve()
-      })
-    },
+    // /**
+    //  * 重新渲染所有数据
+    //  * @param data
+    //  * @returns {Promise<void>}
+    //  */
+    // async layoutAllData(data) {
+    //   for (const d of data) {
+    //     this.layout(d.data, d.key)
+    //   }
+    // },
+    // layout(data, page = 1) {
+    //   return new Promise(resolve => {
+    //     const index = page - 1
+    //     const { boxes, containerHeight } = layoutHelper(
+    //       data,
+    //       this.containerWidth,
+    //       12
+    //     )
+    //     // 把坐标和图片合并到一起
+    //     const newData = boxes.map((item, index) => {
+    //       const picture = { ...data[index] }
+    //       picture._width = picture.width
+    //       picture._height = picture.height
+    //       picture.isChecked = false
+    //       picture.isShow = true
+    //       return Object.assign(picture, item)
+    //     })
+    //     // 记录一下 top
+    //     let top = 76
+    //     if (this.data.length > 0) {
+    //       top = this.data.reduce((i, n) => i + n.containerHeight, top)
+    //     }
+    //     const currentData = {
+    //       key: page,
+    //       data: newData,
+    //       boxes,
+    //       containerHeight,
+    //       top,
+    //     }
+    //     this.$set(this.data, index, currentData)
+    //     this.$set(this.containerHeight, index, containerHeight)
+    //     resolve()
+    //   })
+    // },
     onSectionIntersect(entries) {
       const target = entries[0].target
       const index = parseInt(target.id.replace('section-', ''))
@@ -326,6 +327,7 @@ export default {
       }
       this.preview(i, index)
     },
+    setHeight() {},
   },
 }
 </script>
