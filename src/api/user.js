@@ -1,5 +1,9 @@
 import request from '@/utils/request'
 
+export const fetchUserInfo = id => {
+  return request.get(`user/${id}`)
+}
+
 export const updateInfo = data => {
   return request.post('user', data)
 }

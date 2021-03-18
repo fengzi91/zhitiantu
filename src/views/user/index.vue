@@ -11,13 +11,13 @@
         >
           <v-card-text class="tw-flex tw-p-6">
             <v-avatar size="120" class="tw-shadow-sm">
-              <v-img :src="userinfo.profile_photo_url"></v-img>
+              <v-img :src="showUserinfo.profile_photo_url"></v-img>
             </v-avatar>
             <v-sheet
               class="tw-flex tw-flex-col tw-justify-center tw-gap-4 tw-ml-4"
             >
-              <span class="tw-text-2xl">{{ userinfo.name }}</span>
-              <span>{{ userinfo.introduction }}</span>
+              <span class="tw-text-2xl">{{ showUserinfo.name }}</span>
+              <span>{{ showUserinfo.introduction }}</span>
             </v-sheet>
           </v-card-text>
           <v-tabs v-model="tab" background-color="transparent">
@@ -42,10 +42,11 @@
 </template>
 <script>
 import { mapGetters } from 'vuex'
+import { fetchUserInfo } from '@/api/user'
 
 export default {
   computed: {
-    ...mapGetters(['userinfo']),
+    ...mapGetters(['userinfo', 'isLoggedIn']),
     tab: {
       get() {
         const index = this.items.findIndex(
@@ -58,17 +59,12 @@ export default {
     user_id() {
       return this.$route.params.id || this.userinfo.id
     },
-  },
-  watch: {
-    user_id() {
-      console.log(this.user_id)
+    isSelf() {
+      return this.isLoggedIn && this.user_id === this.userinfo.id
     },
   },
-  mounted() {
-    console.log(this.user_id)
-  },
   data: () => ({
-    isSelf: true,
+    showUserinfo: {},
     items: [
       {
         name: '动态',
@@ -102,5 +98,18 @@ export default {
       },
     ],
   }),
+  mounted() {
+    this.fetchUserInfo()
+  },
+  methods: {
+    async fetchUserInfo() {
+      try {
+        const { data } = await fetchUserInfo(this.user_id)
+        this.showUserinfo = data
+      } catch (e) {
+        console.log(e)
+      }
+    },
+  },
 }
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <div>
     <v-row justify="center">
       <v-col cols="12">
         <v-toolbar flat class="tw-mt-6">
@@ -25,11 +25,11 @@
       <v-col cols="12" ref="container">
         <template v-for="item in data">
           <div class="tw-flex" :key="item.link">
-            <div class="tw-flex-none tw-mt-4 tw-mr-4 tw-flex tw-flex-col">
-              <v-avatar>
-                <v-img :src="item.user.profile_photo_url" />
-              </v-avatar>
-            </div>
+            <!--            <div class="tw-flex-none tw-mt-4 tw-mr-4 tw-flex tw-flex-col" v-if="">-->
+            <!--              <v-avatar>-->
+            <!--                <v-img :src="item.user.profile_photo_url" />-->
+            <!--              </v-avatar>-->
+            <!--            </div>-->
             <div class="tw-w-full">
               <v-card class="tw-mb-8">
                 <v-card-title>
@@ -141,7 +141,7 @@
         </div>
       </v-col>
     </v-row>
-  </v-container>
+  </div>
 </template>
 <script>
 import justifiedLayout from 'justified-layout'

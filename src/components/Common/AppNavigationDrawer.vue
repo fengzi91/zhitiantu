@@ -145,7 +145,6 @@ export default {
       this.handlerMenu(handle)
     },
     handlerMenu(handle) {
-      console.log(handle)
       typeof handle === 'string' && handle !== ''
         ? this.$router.push({ name: handle })
         : typeof handle === 'object'
