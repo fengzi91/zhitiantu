@@ -7,4 +7,21 @@ module.exports = {
       },
     },
   },
+  devServer: {
+    host: 'vue.pictures.test',
+    // proxy: {
+    //   '/api': {
+    //     target: 'http://pictures.test',
+    //     pathRewrite: {
+    //       '^/api': '/api',
+    //     },
+    //   },
+    //   '/sanctum': {
+    //     target: 'http://pictures.test',
+    //     pathRewrite: {
+    //       '^/sanctum': '/sanctum',
+    //     },
+    //   },
+    // },
+  },
 }

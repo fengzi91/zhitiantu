@@ -8,7 +8,7 @@
             <v-spacer></v-spacer>
             <v-tooltip bottom>
               <template v-slot:activator="{ on }">
-                <v-btn :to="{ name: 'Home' }" icon large v-on="on">
+                <v-btn :to="{ name: 'Index' }" icon large v-on="on">
                   <v-icon>mdi-home</v-icon>
                 </v-btn>
               </template>

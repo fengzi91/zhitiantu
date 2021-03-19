@@ -29,7 +29,7 @@
               <v-card-text>
                 <v-text-field
                   label="密码"
-                  v-model="password"
+                  v-model="newPassword"
                   :error-messages="
                     passwordError ? '您输入的密码有误，请重试' : null
                   "
@@ -50,136 +50,225 @@
         </v-col>
       </v-row>
     </v-container>
-    <div
-      class="tw-my-md-8 tw-my-0 tw-h-48 tw-mt-1"
-      v-if="data.title"
-      style="background-size: cover"
-      :style="
-        `background-image:url('${pictures[0].url}?x-bce-process=style/h200');`
-      "
-    >
-      <v-card-title class="white--text">{{ data.title }}</v-card-title>
-    </div>
-    <div v-if="pictures.length > 0">
-      <div class="tw-relative tw-w-full" :style="`height: ${totalHeight}px;`">
-        <template v-for="(item, index) in pictures">
-          <v-sheet
-            :key="`index-picture-${index}`"
-            class="tw-absolute tw-cursor-pointer"
-            :style="{
-              width: item.width + 'px',
-              height: item.height + 'px',
-              // left: item.left + 'px',
-              // top: item.top + 'px',
-              transform: `translate(${item.left}px, ${item.top}px)`,
-            }"
-          >
-            <v-img
-              :src="`${item.url}?x-bce-process=style/h200`"
-              :lazy-src="`${item.url}?x-bce-process=style/h20`"
-              :height="item.height"
-              :width="item.width"
-              cover
-            />
-          </v-sheet>
-        </template>
-      </div>
-    </div>
+    <v-container>
+      <v-row>
+        <v-col ref="container">
+          <div class="tw-my-md-8 tw-my-0 tw-mt-8 tw-bg-gradient-to-b">
+            <v-slide-y-transition mode="out-in">
+              <template v-if="!isEditing">
+                <v-card-title
+                  v-if="collect.title"
+                  key="title"
+                  @click="setEditing"
+                  >{{ collect.title }}</v-card-title
+                >
+                <v-card-title
+                  v-else-if="canEdit"
+                  key="title"
+                  @click="setEditing"
+                  >创建于 {{ collect.created_at }}</v-card-title
+                >
+              </template>
+              <template v-if="isEditing">
+                <div class="ml-4" key="input">
+                  <v-text-field
+                    label="标题"
+                    v-model="title"
+                    placeholder="输入一个标题"
+                  ></v-text-field>
+                  <v-text-field
+                    label="设置密码"
+                    prepend-inner-icon="mdi-lock"
+                    v-model="editPassword"
+                    hint="如果不需要修改密码，请留空"
+                  ></v-text-field>
+                </div>
+              </template>
+            </v-slide-y-transition>
+          </div>
+          <picture-list
+            :prent-data="data"
+            :width="containerWidth"
+            :can-check="canEdit && isEditing"
+            :can-preview="!isEditing"
+          ></picture-list>
+        </v-col>
+      </v-row>
+    </v-container>
   </div>
 </template>
 <script>
-import { fetchData } from '@/api/collect'
-import layoutHelper from '@/utils/justifiedLayout'
-
+import { checkPassword, fetchData } from '@/api/collect'
+import { mapGetters, mapState } from 'vuex'
+import _ from 'lodash'
+import PictureList from '@/components/Picture/List'
 export default {
+  components: {
+    PictureList,
+  },
   computed: {
+    ...mapGetters(['checkedLength']),
+    ...mapState({
+      isEditing: state => state.collect.isEditing,
+    }),
     id() {
       return this.$route.params.id || 0
     },
-    containerWidth() {
+    passwordChecked() {
       return (
-        this.$vuetify.breakpoint.width -
-        this.$vuetify.application.left -
-        (this.$vuetify.breakpoint.mobile
-          ? 0
-          : this.$vuetify.breakpoint.scrollBarWidth)
+        this.$store.state.collect.passwordChecked.findIndex(
+          i => i.id === this.id
+        ) > -1
       )
     },
-    passwordChecked() {
-      return this.$store.state.collect.passwordChecked.indexOf(this.id) > -1
+    password: {
+      get() {
+        const index = this.$store.state.collect.passwordChecked.findIndex(
+          i => i.id === this.id
+        )
+        return index > -1
+          ? this.$store.state.collect.passwordChecked[index].password
+          : undefined
+      },
+      set(value) {
+        this.$store.dispatch('collect/savePassword', {
+          id: this.id,
+          password: value,
+        })
+      },
+    },
+    canEdit() {
+      return (
+        this.collect.user_id === _.get(this.$store.state.auth, 'userInfo.id', 0)
+      )
+    },
+    title: {
+      get() {
+        return this.$store.state.collect.updatingInfo.title
+      },
+      set(title) {
+        this.$store.commit('collect/UPDATE_INFO', {
+          key: 'title',
+          value: title,
+        })
+      },
+    },
+    editPassword: {
+      get() {
+        return this.$store.state.collect.updatingInfo.password
+      },
+      set(password) {
+        this.$store.commit('collect/UPDATE_INFO', {
+          key: 'password',
+          value: password,
+        })
+      },
     },
   },
   watch: {
-    '$store.state.global.navigationDrawerMini'() {
-      this.layoutData(this.data.pictures)
+    '$store.state.global.navigationDrawerMini'() {},
+    isEditing(editing) {
+      if (editing) {
+        this.data = [
+          {
+            page: 1,
+            data: this.$store.state.collect.updatingPictures,
+          },
+        ]
+      }
+    },
+    '$store.state.collect.updatingPictures'() {
+      this.data = [
+        {
+          page: 1,
+          data: this.$store.state.collect.updatingPictures,
+        },
+      ]
+    },
+    '$store.state.collect.updated'(isUpdated) {
+      if (isUpdated) {
+        this.fetchData()
+        this.$store.commit('collect/UPDATED', false)
+      }
     },
   },
   created() {
+    this.newPassword = this.password
+  },
+  mounted() {
+    this.containerWidth = this.$refs.container.getBoundingClientRect().width
     this.fetchData()
   },
-  mounted() {},
+  activated() {},
+  beforeRouteLeave(to, from, next) {
+    if (this.isEditing) {
+      this.$store.commit('collect/CLEAR')
+    }
+    next()
+  },
   data: () => ({
-    data: {
+    collect: {
       pictures: [],
     },
+    data: [],
     pictures: [],
     loading: false,
-    totalHeight: 0,
     showPasswordForm: false,
-    password: undefined,
     passwordError: false,
     passwordLoading: false,
+    newPassword: null,
+    containerWidth: 1160,
   }),
   methods: {
     async fetchData() {
       this.loading = true
-      const { data } = await fetchData(this.id)
-      if (data.id === 1 && !this.passwordChecked) {
-        this.needPassword()
+      try {
+        const requestParams = {}
+        if (this.newPassword) {
+          requestParams.password = this.newPassword
+        }
+        const { data } = await fetchData(this.id, requestParams)
+        // this.layoutData(data.pictures)
+        this.collect = data
+        if (data.pictures.length > 0) {
+          this.data.push({ page: 1, data: data.pictures })
+        }
+      } catch (e) {
+        if (e.response && e.response.status === 403) {
+          this.needPassword()
+        }
+      } finally {
         this.loading = false
-        return
       }
-      this.layoutData(data.pictures)
-      this.data = data
-      this.loading = false
-    },
-    layoutData(pictures) {
-      console.log('记录 width -> ', this.containerWidth)
-      console.log('$vuetify', this.$vuetify)
-      const { boxes, containerHeight } = layoutHelper(
-        pictures,
-        this.containerWidth,
-        64
-      )
-      const newData = boxes.map((item, index) => {
-        const picture = { ...pictures[index] }
-        picture._width = picture.width
-        picture._height = picture.height
-        return Object.assign(picture, item)
-      })
-      console.log(newData)
-      this.totalHeight = containerHeight
-      this.pictures = newData
     },
     needPassword() {
       this.showPasswordForm = true
     },
-    checkPassword() {
+    async checkPassword() {
       this.passwordLoading = true
-      setTimeout(() => {
-        if (this.password === '123456') {
-          this.$store.dispatch('collect/savePassword', {
-            id: this.id,
-            checked: true,
-          })
-          this.passwordError = false
-          this.showPasswordForm = false
-          this.fetchData()
-        } else {
-          this.passwordError = true
-        }
+      try {
+        await checkPassword(this.id, this.newPassword)
+        this.passwordError = false
+        this.showPasswordForm = false
+        // 更新到缓存
+        this.password = this.newPassword
+        this.fetchData()
+      } catch (e) {
+        console.log(e)
+        this.passwordError = true
+      } finally {
         this.passwordLoading = false
-      }, 2000)
+      }
+    },
+    // 变更为编辑状态
+    async setEditing() {
+      if (this.canEdit) {
+        this.$store.commit('collect/SET_UPDATING_DATA', {
+          collect: this.collect,
+          data: this.data,
+        })
+        this.$store.commit('collect/SET_EDITING', true)
+      }
     },
   },
 }

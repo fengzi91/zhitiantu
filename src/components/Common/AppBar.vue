@@ -15,14 +15,8 @@
       </div>
 
       <v-spacer></v-spacer>
-      <v-btn
-        icon
-        text
-        @click="$store.dispatch('upload/initUpload')"
-        class="mr-2"
-      >
-        <v-icon>mdi-upload</v-icon>
-      </v-btn>
+      <search-input></search-input>
+      <v-spacer></v-spacer>
       <v-btn :to="{ name: 'Login' }" text v-if="!isLoggedIn">
         <span class="mr-2">登录/注册</span>
         <v-icon>mdi-auth</v-icon>
@@ -31,7 +25,7 @@
         <v-menu open-on-hover offset-y>
           <template v-slot:activator="{ on, attrs }">
             <v-avatar size="36" v-bind="attrs" v-on="on">
-              <img :src="userinfo.avatar" />
+              <img :src="userinfo.profile_photo_url" />
             </v-avatar>
           </template>
 
@@ -96,36 +90,19 @@
   </v-app-bar>
 </template>
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
+import SearchInput from '@/components/Common/SearchInput'
+import { menu } from '@/data/user'
+
 export default {
   name: 'AppBar',
+  components: { SearchInput },
   computed: {
     ...mapGetters(['isLoggedIn', 'userinfo', 'checkedLength']),
+    ...mapState('global', ['navigationDrawer']),
   },
   data: () => ({
-    items: [
-      {
-        icon: 'mdi-home-account',
-        title: '个人主页',
-        handler: {
-          name: 'Home',
-        },
-      },
-      {
-        icon: 'mdi-upload',
-        title: '上传图片',
-        handler: vm => {
-          vm.$store.dispatch('upload/initUpload')
-        },
-      },
-      {
-        icon: 'mdi-logout',
-        title: '退出',
-        handler: vm => {
-          vm.$store.dispatch('auth/logout')
-        },
-      },
-    ],
+    items: menu,
   }),
   methods: {
     menuHandler(index) {
@@ -139,7 +116,7 @@ export default {
     },
     toggleDrawer() {
       // const state = this.$store.state.global.navigationDrawer
-      this.$store.commit('global/TOGGLE_NAVIGATION_DRAWER_MINI')
+      this.$store.commit('global/SET_NAVIGATION_DRAWER', !this.navigationDrawer)
     },
     clearAll() {
       this.$store.commit('checked/CLEAR')

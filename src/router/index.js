@@ -1,15 +1,18 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '@/views/Home'
+import Index from '@/views/Index'
 import store from '@/store'
 
 Vue.use(VueRouter)
-
+import AuthRoute from './modules/auth'
+import PreviewRoute from './modules/picture'
+import CollectRoute from './modules/collect'
+import UserRoute from './modules/user'
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: Home,
+    name: 'Index',
+    component: Index,
     meta: {
       keepAlive: true,
     },
@@ -27,18 +30,6 @@ const routes = [
     },
   },
   {
-    path: '/auth/login',
-    name: 'Login',
-    component: () =>
-      import(/* webpackChunkName: "login" */ '@/views/auth/login'),
-    meta: {
-      hideAppBar: true,
-      center: true,
-      guest: true,
-      navigation: false,
-    },
-  },
-  {
     path: '/upload',
     name: 'Upload',
     component: () => import(/* webpackChunkName: "upload" */ '@/views/Upload'),
@@ -46,22 +37,10 @@ const routes = [
       auth: true,
     },
   },
-  {
-    path: '/collect/:id',
-    name: 'ViewCollect',
-    component: () =>
-      import(/* webpackChunkName: "collect" */ '@/views/collect/show'),
-    meta: {
-      auth: true,
-      appBarDefault: true,
-    },
-  },
-  {
-    path: '/preview/:id',
-    name: 'preview',
-    component: () =>
-      import(/* webpackChunkName: "picture" */ '@/views/picture/show'),
-  },
+  AuthRoute,
+  PreviewRoute,
+  CollectRoute,
+  UserRoute,
   {
     path: '*',
     name: 'NotFound',
@@ -78,13 +57,17 @@ const router = new VueRouter({
   base: process.env.BASE_URL,
   routes,
   scrollBehavior(to, from, savedPosition) {
-    // if (
-    //   to.name === 'Home' &&
-    //   from.name === 'preview' &&
-    //   store.state.picture.scrollTop > 0
-    // ) {
-    //   return { x: 0, y: store.state.picture.scrollTop, behavior: 'smooth' }
-    // }
+    if (
+      (to.name === 'Index' || to.name === 'ViewCollect') &&
+      from.name === 'preview' &&
+      top !== 0
+    ) {
+      const scrollTop = savedPosition.y + store.state.picture.scrollTop
+      return {
+        x: 0,
+        y: scrollTop,
+      }
+    }
     if (savedPosition) {
       return savedPosition
     } else {
@@ -98,17 +81,21 @@ router.beforeEach((to, from, next) => {
   if (to.fullPath.indexOf('/auth') > -1 && isLoggedIn) {
     return
   }
-  if (false === to.meta.navigation) {
-    store.commit('global/SET_NAVIGATION_DRAWER', false)
-  } else {
-    store.commit('global/SET_NAVIGATION_DRAWER', true)
-  }
-  if (to.meta.hideAppBar) {
+  // if (
+  //   to.matched.some(
+  //     record => record.meta.navigation !== undefined && !record.meta.navigation
+  //   )
+  // ) {
+  //   store.commit('global/SET_NAVIGATION_DRAWER', false)
+  // } else {
+  //   store.commit('global/SET_NAVIGATION_DRAWER', true)
+  // }
+  if (to.matched.some(record => record.meta.hideAppBar)) {
     store.commit('global/HIDE_APP_BAR')
   } else {
     store.commit('global/SHOW_APP_BAR', true)
   }
-  if (to.meta.center) {
+  if (to.matched.some(record => record.meta.center)) {
     store.commit('global/FILL_HEIGHT')
   } else {
     store.commit('global/AUTO_HEIGHT')
@@ -118,7 +105,11 @@ router.beforeEach((to, from, next) => {
   } else {
     store.commit('global/SET_APP_BAR_TYPE', undefined)
   }
-  if (to.fullPath.indexOf('/auth') < 0 && !isLoggedIn && to.meta.auth) {
+  if (
+    to.fullPath.indexOf('/auth') < 0 &&
+    !isLoggedIn &&
+    to.matched.some(record => record.meta.auth)
+  ) {
     store.commit('auth/SET_REDIRECT_TO', to.fullPath)
     store.commit('auth/SET_BACK_TO', from.fullPath)
     next({

@@ -7,3 +7,15 @@ export const login = data => {
     data,
   })
 }
+
+export const register = data => {
+  return request({
+    url: 'register',
+    method: 'post',
+    data,
+  })
+}
+
+export const csrfCookie = () => {
+  return request.get('/sanctum/csrf-cookie')
+}

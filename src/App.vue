@@ -1,11 +1,15 @@
 <template>
   <v-app>
     <app-navigation-drawer></app-navigation-drawer>
-    <app-bar v-if="showAppBar" />
+    <collect-edit-app-bar v-if="isEditingCollect"></collect-edit-app-bar>
+    <app-bar v-else-if="showAppBar" />
     <v-main>
       <transition name="fade" mode="in-out">
-        <keep-alive key="keep-alive">
-          <router-view v-if="$route.meta.keepAlive"></router-view>
+        <keep-alive>
+          <router-view
+            :key="$route.fullPath"
+            v-if="$route.meta.keepAlive"
+          ></router-view>
         </keep-alive>
       </transition>
       <transition name="fade" mode="in-out">
@@ -23,31 +27,42 @@
 <script>
 import AppBar from './components/Common/AppBar'
 import AppNavigationDrawer from '@/components/Common/AppNavigationDrawer'
-import { mapGetters } from 'vuex'
+import CollectEditAppBar from '@/components/Common/CollectEditAppBar'
+import { mapGetters, mapState } from 'vuex'
 import Message from '@/components/Message/Index'
 import Upload from '@/components/Upload/Index'
+// import { csrfCookie } from '@/api/auth'
+
 export default {
   name: 'App',
 
   components: {
     Message,
     AppNavigationDrawer,
+    CollectEditAppBar,
     AppBar,
     Upload,
   },
 
   computed: {
     ...mapGetters(['showAppBar', 'isLoggedIn']),
+    ...mapState('global', ['navigationDrawer']),
+    ...mapState({ isEditingCollect: state => state.collect.isEditing }),
+    inUserInfoPage() {
+      return this.$route.matched.some(record => record.name === 'User')
+    },
   },
-
+  created() {
+    this.$store.dispatch('tag/getTags')
+  },
   data: () => ({}),
   methods: {},
 }
 </script>
 <style lang="stylus" scoped>
 .fade-enter-active, .fade-leave-active
-  // transition opacity .1s
+  transition opacity .3s
 
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */
-  // opacity 0
+  opacity 0
 </style>

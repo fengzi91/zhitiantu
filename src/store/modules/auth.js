@@ -1,6 +1,6 @@
 import ls from '@/utils/ls'
 import _ from 'lodash'
-import { login as loginRequest } from '@/api/auth'
+import { login as loginRequest, register as registerRequest } from '@/api/auth'
 import router from '@/router'
 const state = {
   loggedIn: ls.get('loggedIn', false),
@@ -8,6 +8,7 @@ const state = {
   backTo: '/', // 返回按钮跳转的页面, 始终为打开登录页时的来路页面
   userInfo: ls.get('userInfo', null),
   loginLoading: false,
+  registerLoading: false,
   token: ls.get('token', null),
 }
 
@@ -57,6 +58,34 @@ const actions = {
       }
     } catch (e) {
       let content = '登录失败，服务器错误！'
+      if (!_.get(e, 'response.data.message', false)) {
+        dispatch(
+          'message/pushMessage',
+          {
+            type: 'error',
+            info: content,
+            content,
+            timeout: 3000,
+          },
+          { root: true }
+        )
+      }
+    } finally {
+      commit('TOGGLE_LOADING')
+    }
+  },
+  async register({ commit, dispatch }, registerData) {
+    commit('TOGGLE_LOADING')
+    try {
+      const { token, data } = await registerRequest(registerData)
+      if (data.id) {
+        commit('SET_LOGGED')
+        commit('SET_USER_INFO', data)
+        commit('SET_TOKEN', token)
+        return true
+      }
+    } catch (e) {
+      let content = '注册失败，服务器错误！'
       if (_.get(e, 'response.data.message', false)) {
         content = e.response.data.message
       }
@@ -66,7 +95,7 @@ const actions = {
           type: 'error',
           info: content,
           content,
-          timeout: -1,
+          timeout: 3000,
         },
         { root: true }
       )

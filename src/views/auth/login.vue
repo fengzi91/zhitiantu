@@ -2,7 +2,7 @@
   <v-container class="fill-height">
     <v-row class="text-center" align="center" justify="center">
       <v-col cols="12" sm="8" md="4">
-        <v-card :loading="loginLoading ? 'warning' : false">
+        <v-card :loading="authLoading ? 'warning' : false">
           <v-toolbar color="primary" dark flat>
             <v-toolbar-title>登录</v-toolbar-title>
             <v-spacer></v-spacer>
@@ -38,7 +38,7 @@
             </v-form>
           </v-card-text>
           <v-card-actions class="pl-5 pb-3">
-            <v-btn color="primary" @click="loginSubmit" :disabled="loginLoading"
+            <v-btn color="primary" @click="loginSubmit" :disabled="authLoading"
               >登录</v-btn
             >
             <v-btn text :to="authBackTo">返回</v-btn>
@@ -51,10 +51,11 @@
 </template>
 <script>
 import { mapGetters } from 'vuex'
+import { csrfCookie } from '@/api/auth'
 export default {
   name: 'Login',
   computed: {
-    ...mapGetters(['authBackTo', 'loginLoading', 'authRedirectTo']),
+    ...mapGetters(['authBackTo', 'authLoading', 'authRedirectTo']),
   },
   data: () => ({
     valid: false,
@@ -88,6 +89,7 @@ export default {
           password: this.password,
           remember: this.remember,
         }
+        await csrfCookie()
         if (await this.$store.dispatch('auth/login', loginData)) {
           this.$router.replace(this.authRedirectTo)
         }

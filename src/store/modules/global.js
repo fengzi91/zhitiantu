@@ -2,7 +2,7 @@ const state = {
   showAppBar: true,
   appBarType: undefined,
   fillHeight: false,
-  navigationDrawer: true,
+  navigationDrawer: false,
   navigationDrawerMini: false,
 }
 
