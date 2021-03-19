@@ -7,11 +7,20 @@
       <v-spacer></v-spacer>
       <v-btn
         icon
-        fab
-        :color="show.isChecked ? 'primary' : 'white'"
-        @click="handleCheck"
+        @click="like"
+        :color="
+          this.$store.state.like.picture[this.show.id] &&
+          this.$store.state.like.picture[this.show.id].liked
+            ? 'primary'
+            : 'white'
+        "
+        :loading="
+          this.$store.state.like.picture[this.show.id]
+            ? this.$store.state.like.picture[this.show.id].loading
+            : false
+        "
       >
-        <v-icon>mdi-check</v-icon>
+        <v-icon>mdi-thumb-up</v-icon>
       </v-btn>
     </v-toolbar>
     <div
@@ -367,6 +376,9 @@ export default {
         value: !checked,
       })
       this.$store.commit('checked/CHECK', this.show)
+    },
+    like() {
+      this.$store.dispatch('like/like', { id: this.show.id, type: 'picture' })
     },
   },
 }

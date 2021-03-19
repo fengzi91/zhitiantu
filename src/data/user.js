@@ -25,12 +25,7 @@ export const menu = [
       {
         title: '赞过',
         icon: 'mdi-thumb-up',
-        handler: '',
-      },
-      {
-        title: '收藏',
-        icon: 'mdi-bookmark',
-        handler: '',
+        handler: { name: 'UserCollect', params: { type: 'liked' } },
       },
     ],
   },
@@ -46,11 +41,6 @@ export const menu = [
       {
         title: '赞过',
         icon: 'mdi-thumb-up',
-        handler: '',
-      },
-      {
-        title: '收藏',
-        icon: 'mdi-bookmark',
         handler: '',
       },
     ],

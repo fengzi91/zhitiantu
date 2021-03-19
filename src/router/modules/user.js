@@ -15,7 +15,7 @@ export default {
       },
       children: [
         {
-          path: 'collect',
+          path: 'collect/:type?',
           name: 'UserCollect',
           component: () =>
             import(/* webpackChunkName: "user" */ '@/views/user/collect'),

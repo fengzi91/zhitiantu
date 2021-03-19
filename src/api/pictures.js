@@ -5,3 +5,7 @@ export const index = params => {
     params,
   })
 }
+
+export const like = id => {
+  return request.post(`picture/${id}/like`)
+}

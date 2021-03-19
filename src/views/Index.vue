@@ -130,7 +130,7 @@ export default {
       }
     },
     keyword() {
-      return this.$store.state.search.keywords[this.$route.name]
+      return this.$store.state.search.keywords[this.$route.fullPath]
     },
   },
   activated() {

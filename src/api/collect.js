@@ -27,3 +27,11 @@ export const checkPassword = (id, password) => {
 export const update = data => {
   return request.put(`collect/${data.link}`, data)
 }
+
+export const like = link => {
+  return request.post(`collect/${link}/like`)
+}
+
+export const unlike = link => {
+  return request.post(`collect/${link}/unlike`)
+}

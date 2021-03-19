@@ -62,12 +62,25 @@
                   </div>
                 </v-card-text>
                 <v-card-actions>
-                  <v-btn icon>
+                  <v-btn
+                    icon
+                    @click="like(item.link)"
+                    :loading="
+                      $store.state.like.collect[item.link] &&
+                        $store.state.like.collect[item.link].loading
+                    "
+                    :color="
+                      $store.state.like.collect[item.link] &&
+                      $store.state.like.collect[item.link].liked
+                        ? 'primary'
+                        : null
+                    "
+                  >
                     <v-icon>mdi-thumb-up-outline</v-icon>
                   </v-btn>
-                  <v-btn icon>
-                    <v-icon>mdi-bookmark-outline</v-icon>
-                  </v-btn>
+                  <span class="tw-text-gray-500 tw-font-medium">{{
+                    $store.state.like.collect[item.link].count
+                  }}</span>
                   <v-spacer></v-spacer>
                   <v-btn
                     text
@@ -97,11 +110,11 @@
           <template v-if="data.length > 0">
             已加载全部数据
           </template>
-          <!--          <template v-else-if="!loadDataError">-->
-          <!--            没有找到与-->
-          <!--            <span class="tw-text-red-400">{{ keyword }}</span>-->
-          <!--            相关的图片-->
-          <!--          </template>-->
+          <template v-else-if="!loadDataError">
+            没有找到与
+            <span class="tw-text-red-400">{{ keyword }}</span>
+            相关的分享集
+          </template>
           <template v-else>
             网络错误，请稍后<span
               class="tw-text-indigo-400 tw-cursor-pointer"
@@ -144,135 +157,54 @@
   </div>
 </template>
 <script>
-import justifiedLayout from 'justified-layout'
-import { fetchIndex } from '@/api/collect'
-import { debounce } from 'lodash'
 import { mapGetters } from 'vuex'
+import collect from '@/mixin/collect'
 export default {
+  mixins: [collect],
   computed: {
     ...mapGetters(['userinfo']),
     keyword() {
-      return this.$store.state.search.keywords[this.$route.name]
+      return this.$store.state.search.keywords[this.$route.fullPath]
     },
     user_id() {
       return this.$route.params.id || this.userinfo.id
     },
+    type() {
+      return this.$route.params.type
+    },
   },
   watch: {
-    keyword(newKeyword, oldKeyword) {
-      if (newKeyword !== oldKeyword) {
-        this.debounceSearch(true)
-      }
+    type() {
+      this.fetchIndex(true)
     },
-    selectSort(index) {
-      this.changeSort(this.sorts[index])
-    },
-  },
-  data: () => ({
-    data: [],
-    loading: false,
-    containerWidth: 0,
-    noMoreData: false,
-    current_page: 1,
-    sorts: [
-      {
-        title: '点赞最多',
-        key: '-thumb_up',
-      },
-      {
-        title: '最新创建',
-        key: '-created_at',
-      },
-      {
-        title: '最早创建',
-        key: 'created_at',
-      },
-      {
-        title: '最多浏览',
-        key: 'view_counts',
-      },
-    ],
-    sort: '-created_at',
-    selectSort: 1,
-  }),
-  created() {
-    this.debounceOnIntersect = debounce(this.onIntersect, 200)
-    this.debounceSearch = debounce(this.fetchIndex, 500)
   },
   async mounted() {
     this.containerWidth =
-      this.$refs['container'].getBoundingClientRect().width - 32 - 88
+      this.$refs['container'].getBoundingClientRect().width - 32 - 24
   },
   methods: {
-    onIntersect(entries) {
-      // More information about these options
-      // is located here: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
-      if (entries[0].intersectionRatio >= 0.5) {
-        if (!this.loading) {
-          this.fetchIndex(this.data.length <= 0)
-        }
+    getFetchParams(reset = false) {
+      const params = {
+        page: 1,
+        include: ['pictures'],
+        'filter[user_id]': this.user_id,
       }
-    },
-    async fetchIndex(reset = false) {
-      this.loading = true
-      try {
-        const params = {
-          page: 1,
-          include: ['pictures'],
-          'filter[user_id]': this.user_id,
-        }
-        if (reset) {
-          this.$vuetify.goTo(0)
-          this.refreshData()
-        } else {
-          params.page = ++this.current_page
-        }
-        if (this.sort) {
-          params.sort = this.sort
-        }
-        if (this.keyword) {
-          params.keyword = this.keyword
-        }
-        const { data, meta } = await fetchIndex(params)
-        this.current_page = meta.current_page
-        if (meta.current_page === meta.last_page || data.length <= 0) {
-          this.noMoreData = true
-        }
-        // 布局
-        const newData = data.map(d => {
-          return Object.assign(d, this.layout(d.pictures))
-        })
-        this.data = this.data.concat(newData)
-      } catch (e) {
-        console.log(e)
-      } finally {
-        this.loading = false
+      if (reset) {
+        this.$vuetify.goTo(0)
+        this.refreshData()
+      } else {
+        params.page = ++this.current_page
       }
-    },
-    // 清理数据
-    refreshData() {
-      this.noMoreData = false
-      this.data = []
-      this.current_page = 1
-    },
-    changeSort(item) {
-      if (this.sort !== item.key) {
-        this.sort = item.key
-        this.fetchIndex(true)
+      if (this.sort) {
+        params.sort = this.sort
       }
-    },
-    layout(pictures) {
-      return justifiedLayout(pictures, {
-        targetRowHeight: 80,
-        containerWidth: this.containerWidth,
-        showWidows: true,
-        containerPadding: {
-          top: 0,
-          right: 0,
-          bottom: 0,
-          left: 0,
-        },
-      })
+      if (this.keyword) {
+        params.keyword = this.keyword
+      }
+      if (this.type) {
+        params.type = this.type
+      }
+      return params
     },
   },
 }

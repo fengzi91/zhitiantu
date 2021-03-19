@@ -54,17 +54,17 @@ export default {
   computed: {
     keyword: {
       get() {
-        return this.$store.state.search.keywords[this.$route.name]
+        return this.$store.state.search.keywords[this.$route.fullPath]
       },
       set(value) {
         this.$store.commit('search/SET_KEYWORD', {
-          key: this.$route.name,
+          key: this.$route.fullPath,
           value,
         })
       },
     },
     placeHolder() {
-      return searchPlaceholder(this.$route.name)
+      return searchPlaceholder(this.$route)
     },
     isShow() {
       return isShow(this.$route.name)
