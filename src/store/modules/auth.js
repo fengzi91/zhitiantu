@@ -1,7 +1,12 @@
 import ls from '@/utils/ls'
 import _ from 'lodash'
-import { login as loginRequest, register as registerRequest } from '@/api/auth'
+import {
+  login as loginRequest,
+  logout,
+  register as registerRequest,
+} from '@/api/auth'
 import router from '@/router'
+import { me } from '@/api/user'
 const state = {
   loggedIn: ls.get('loggedIn', false),
   redirectTo: '/',
@@ -38,12 +43,17 @@ const mutations = {
 }
 
 const actions = {
-  logout({ commit, state }) {
-    commit('SET_LOGGED', false)
-    commit('SET_USER_INFO', null)
-    commit('SET_TOKEN', null)
-    if (router.currentRoute.meta.auth) {
-      router.push(state.backTo)
+  async logout({ commit, state }) {
+    try {
+      await logout()
+      commit('SET_LOGGED', false)
+      commit('SET_USER_INFO', null)
+      commit('SET_TOKEN', null)
+      if (router.currentRoute.meta.auth) {
+        router.push(state.backTo)
+      }
+    } catch (e) {
+      console.log(e)
     }
   },
   async login({ commit, dispatch }, loginData) {
@@ -101,6 +111,20 @@ const actions = {
       )
     } finally {
       commit('TOGGLE_LOADING')
+    }
+  },
+  async checkLogin({ commit }) {
+    try {
+      const { data } = await me()
+      if (data.id) {
+        commit('SET_LOGGED')
+        commit('SET_USER_INFO', data)
+        return true
+      }
+    } catch (e) {
+      commit('SET_LOGGED', false)
+      commit('SET_USER_INFO', null)
+      commit('SET_TOKEN', null)
     }
   },
 }

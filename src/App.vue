@@ -54,6 +54,7 @@ export default {
   },
   created() {
     this.$store.dispatch('tag/getTags')
+    this.$store.dispatch('auth/checkLogin')
   },
   data: () => ({}),
   methods: {},

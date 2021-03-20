@@ -1,5 +1,8 @@
 import request from '@/utils/request'
 
+export const me = () => {
+  return request.get(`me`)
+}
 export const fetchUserInfo = id => {
   return request.get(`user/${id}`)
 }

@@ -15,23 +15,19 @@ export const fetchIndex = params => {
 }
 
 export const create = data => {
-  return request({ url: `collect`, data, method: 'post' })
+  return request({ url: `collects`, data, method: 'post' })
 }
 
 export const checkPassword = (id, password) => {
-  return request.post(`/collect/${id}/check_password`, {
+  return request.post(`/collects/${id}/check_password`, {
     password,
   })
 }
 
 export const update = data => {
-  return request.put(`collect/${data.link}`, data)
+  return request.put(`collects/${data.link}`, data)
 }
 
 export const like = link => {
-  return request.post(`collect/${link}/like`)
-}
-
-export const unlike = link => {
-  return request.post(`collect/${link}/unlike`)
+  return request.post(`collects/${link}/like`)
 }

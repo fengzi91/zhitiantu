@@ -39,8 +39,10 @@ service.interceptors.response.use(
           break
 
         case 401:
-          messageError('未授权，请重新登录')
-          router.push('/auth/login')
+          if (error.response.config.url !== 'me') {
+            messageError('未授权，请重新登录')
+            router.push('/auth/login')
+          }
           break
 
         case 403:
