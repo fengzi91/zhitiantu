@@ -19,3 +19,7 @@ export const register = data => {
 export const csrfCookie = () => {
   return request.get('/sanctum/csrf-cookie')
 }
+
+export const logout = () => {
+  return request.delete('logout')
+}
