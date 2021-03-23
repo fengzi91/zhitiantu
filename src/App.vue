@@ -4,7 +4,7 @@
     <collect-edit-app-bar v-if="isEditingCollect"></collect-edit-app-bar>
     <app-bar v-else-if="showAppBar" />
     <v-main>
-      <transition name="fade" mode="in-out">
+      <transition name="fade" mode="out-in">
         <keep-alive>
           <router-view
             :key="$route.fullPath"

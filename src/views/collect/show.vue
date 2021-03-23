@@ -1,5 +1,5 @@
 <template>
-  <div class="tw-h-full">
+  <div :class="loading || showPasswordForm ? 'tw-h-full' : null">
     <v-container
       :class="{ 'fill-height': loading || showPasswordForm }"
       v-if="loading || showPasswordForm"
@@ -53,7 +53,7 @@
     <v-container>
       <v-row>
         <v-col ref="container">
-          <div class="tw-my-md-8 tw-my-0 tw-mt-8 tw-bg-gradient-to-b">
+          <div class="tw-my-md-8 tw-my-0 tw-mt-8 tw-bg-gradient-to-b ">
             <v-slide-y-transition mode="out-in">
               <template v-if="!isEditing">
                 <v-card-title
@@ -86,11 +86,34 @@
               </template>
             </v-slide-y-transition>
           </div>
+          <div class="tw-m-4 tw-flex">
+            <div class="tw-flex tw-col-span-2">
+              <v-avatar>
+                <v-img :src="collect.user.profile_photo_url"></v-img>
+              </v-avatar>
+              <div class="tw-ml-2 tw-flex tw-flex-col tw-justify-between">
+                <span class="tw-font-medium tw-flex-grow tw-mt-auto">{{
+                  collect.user.name
+                }}</span>
+                <span class="tw-text-sm tw-text-gray-400 tw-align-baseline"
+                  >创建于 {{ collect.created_at }}</span
+                >
+              </div>
+            </div>
+            <div class="tw-flex tw-items-end tw-ml-8">
+              <v-btn icon>
+                <v-icon>mdi-thumb-up</v-icon>
+              </v-btn>
+              {{ collect.likers_count }}
+            </div>
+          </div>
+          <v-divider></v-divider>
           <picture-list
             :prent-data="data"
             :width="containerWidth"
             :can-check="canEdit && isEditing"
             :can-preview="!isEditing"
+            :layout-config="layoutConfig"
           ></picture-list>
         </v-col>
       </v-row>
@@ -164,6 +187,19 @@ export default {
         })
       },
     },
+    layoutConfig() {
+      return {
+        targetRowHeight: 180,
+        containerWidth: this.containerWidth,
+        showWidows: true,
+        containerPadding: {
+          top: 12,
+          right: 16,
+          bottom: 12,
+          left: 16,
+        },
+      }
+    },
   },
   watch: {
     '$store.state.global.navigationDrawerMini'() {},
@@ -196,7 +232,8 @@ export default {
     this.newPassword = this.password
   },
   mounted() {
-    this.containerWidth = this.$refs.container.getBoundingClientRect().width
+    this.containerWidth =
+      this.$refs.container.getBoundingClientRect().width - 24
     this.fetchData()
   },
   activated() {},
@@ -209,6 +246,7 @@ export default {
   data: () => ({
     collect: {
       pictures: [],
+      user: {},
     },
     data: [],
     pictures: [],
