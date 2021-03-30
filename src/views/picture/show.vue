@@ -101,6 +101,7 @@ import {
   getPreviewImageStyle,
   getCurrentShowImageScrollTop,
 } from '@/utils/preview'
+import { fetchData } from '@/api/pictures'
 export default {
   computed: {
     ...mapState('picture', ['show']),
@@ -187,6 +188,9 @@ export default {
       width: 0,
       height: 0,
     },
+    data: {
+      user: {},
+    },
   }),
   mounted() {
     if (this.show.url.indexOf('?x-bce-process=style/h200') < 0) {
@@ -226,8 +230,22 @@ export default {
     this.initIndex = this.show.index
     this.initSection = this.show.section
     this.initItem = Object.assign({}, this.show)
+    this.loadData()
+  },
+  watch: {
+    'show.uuid'() {
+      this.loadData()
+    },
   },
   methods: {
+    async loadData() {
+      try {
+        const { data } = await fetchData(this.show.uuid)
+        console.log(data)
+      } catch (e) {
+        console.log(e)
+      }
+    },
     async showTrueContainer(previewStyle) {
       return new Promise(resolve => {
         setTimeout(() => {
@@ -378,7 +396,7 @@ export default {
       this.$store.commit('checked/CHECK', this.show)
     },
     like() {
-      this.$store.dispatch('like/like', { id: this.show.id, type: 'picture' })
+      this.$store.dispatch('like/like', { id: this.show.uuid, type: 'picture' })
     },
   },
 }

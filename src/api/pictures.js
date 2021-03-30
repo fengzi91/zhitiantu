@@ -7,5 +7,9 @@ export const index = params => {
 }
 
 export const like = id => {
-  return request.post(`picture/${id}/like`)
+  return request.post(`pictures/${id}/like`)
+}
+
+export const fetchData = uuid => {
+  return request.get(`pictures/${uuid}`)
 }
