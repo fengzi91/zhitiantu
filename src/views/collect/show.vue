@@ -283,9 +283,16 @@ export default {
         if (data.pictures.length > 0) {
           this.data.push({ page: 1, data: data.pictures })
         }
+        if (data.password) {
+          this.editPassword = data.password
+        }
       } catch (e) {
         if (e.response && e.response.status === 403) {
           this.needPassword()
+        } else if (e.response && e.response.status === 404) {
+          this.$router.replace({
+            name: 'NotFound',
+          })
         }
       } finally {
         this.loading = false
