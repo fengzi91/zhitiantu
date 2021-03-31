@@ -72,11 +72,26 @@
                     >
                     <div class="tw-mx-4 tw-flex">
                       <div class="tw-flex tw-items-center">
-                        <v-btn icon>
+                        <v-btn
+                          icon
+                          @click="like"
+                          :loading="
+                            $store.state.like.collect[collect.link] &&
+                              $store.state.like.collect[collect.link].loading
+                          "
+                          :color="
+                            $store.state.like.collect[collect.link] &&
+                            $store.state.like.collect[collect.link].liked
+                              ? 'primary'
+                              : null
+                          "
+                        >
                           <v-icon>mdi-thumb-up</v-icon>
                         </v-btn>
-                        <span class="tw-text-gray-400">{{
-                          collect.likers_count || 0
+                        <span class="tw-text-gray-400 tw-ml-1">{{
+                          $store.state.like.collect[collect.link]
+                            ? $store.state.like.collect[collect.link].count
+                            : collect.likers_count || 0
                         }}</span>
                       </div>
                       <!--                      <v-btn icon>-->
@@ -283,6 +298,11 @@ export default {
         if (data.pictures.length > 0) {
           this.data.push({ page: 1, data: data.pictures })
         }
+        this.$store.dispatch('like/setCount', {
+          id: data.link,
+          count: data.likers_count,
+          type: 'collect',
+        })
         if (data.password) {
           this.editPassword = data.password
         }
@@ -326,6 +346,12 @@ export default {
         })
         this.$store.commit('collect/SET_EDITING', true)
       }
+    },
+    async like() {
+      await this.$store.dispatch('like/like', {
+        id: this.collect.link,
+        type: 'collect',
+      })
     },
   },
 }
