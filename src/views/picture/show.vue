@@ -9,19 +9,22 @@
         icon
         @click="like"
         :color="
-          this.$store.state.like.picture[this.show.id] &&
-          this.$store.state.like.picture[this.show.id].liked
+          $store.state.like.picture[show.uuid] &&
+          $store.state.like.picture[show.uuid].liked
             ? 'primary'
             : 'white'
         "
         :loading="
-          this.$store.state.like.picture[this.show.id]
-            ? this.$store.state.like.picture[this.show.id].loading
+          $store.state.like.picture[show.uuid]
+            ? $store.state.like.picture[show.uuid].loading
             : false
         "
       >
         <v-icon>mdi-thumb-up</v-icon>
       </v-btn>
+      <span class="tw-text-white">{{
+        $store.state.like.picture[show.uuid].count
+      }}</span>
     </v-toolbar>
     <div
       class="preview-img tw-absolute tw-z-40"
@@ -242,6 +245,16 @@ export default {
       try {
         const { data } = await fetchData(this.show.uuid)
         console.log(data)
+        this.$store.dispatch('like/setCount', {
+          id: data.uuid,
+          count: data.likers_count,
+          type: 'picture',
+        })
+        this.$store.dispatch('like/setIsLiked', {
+          id: data.uuid,
+          liked: data.isLiked,
+          type: 'picture',
+        })
       } catch (e) {
         console.log(e)
       }
@@ -310,7 +323,7 @@ export default {
         : null
       this.$nextTick(() => {
         this.positionStyle = positionStyle
-        this.$router.back()
+        this.$router.push(this.$store.state.global.previewBackTo)
       })
     },
     loadOrigin(url) {
@@ -373,6 +386,10 @@ export default {
             data
           )
         )
+      })
+      this.$router.push({
+        name: 'preview',
+        params: { id: data.uuid },
       })
     },
     goNext() {

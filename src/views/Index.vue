@@ -216,50 +216,6 @@ export default {
       this.data = []
       this.current_page = 1
     },
-    // /**
-    //  * 重新渲染所有数据
-    //  * @param data
-    //  * @returns {Promise<void>}
-    //  */
-    // async layoutAllData(data) {
-    //   for (const d of data) {
-    //     this.layout(d.data, d.key)
-    //   }
-    // },
-    // layout(data, page = 1) {
-    //   return new Promise(resolve => {
-    //     const index = page - 1
-    //     const { boxes, containerHeight } = layoutHelper(
-    //       data,
-    //       this.containerWidth,
-    //       12
-    //     )
-    //     // 把坐标和图片合并到一起
-    //     const newData = boxes.map((item, index) => {
-    //       const picture = { ...data[index] }
-    //       picture._width = picture.width
-    //       picture._height = picture.height
-    //       picture.isChecked = false
-    //       picture.isShow = true
-    //       return Object.assign(picture, item)
-    //     })
-    //     // 记录一下 top
-    //     let top = 76
-    //     if (this.data.length > 0) {
-    //       top = this.data.reduce((i, n) => i + n.containerHeight, top)
-    //     }
-    //     const currentData = {
-    //       key: page,
-    //       data: newData,
-    //       boxes,
-    //       containerHeight,
-    //       top,
-    //     }
-    //     this.$set(this.data, index, currentData)
-    //     this.$set(this.containerHeight, index, containerHeight)
-    //     resolve()
-    //   })
-    // },
     onSectionIntersect(entries) {
       const target = entries[0].target
       const index = parseInt(target.id.replace('section-', ''))
@@ -320,7 +276,7 @@ export default {
       this.$store.commit('picture/SET_INIT_DATA', { section: i, index })
       this.$router.push({
         name: 'preview',
-        params: { id: 'dsaczxcuirewurhsfkjdshfsdjk' },
+        params: { id: this.data.uuid },
       })
     },
     check(i, index) {
