@@ -45,6 +45,16 @@ const mutations = {
       })
     })
   },
+  FILL_PICTURE(state, data) {
+    console.log(data)
+    data.forEach(picture => {
+      Vue.set(state.picture, picture.uuid, {
+        loading: false,
+        liked: picture.is_liked,
+        count: picture.count,
+      })
+    })
+  },
 }
 
 const actions = {

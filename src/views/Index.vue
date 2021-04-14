@@ -83,12 +83,14 @@ import store from '@/store'
 import { mapGetters, mapState } from 'vuex'
 import PictureList from '@/components/Picture/List'
 import ShareDialog from '@/components/Share/Dialog'
+import picture from '@/mixin/picture'
 export default {
   name: 'Home',
   components: {
     PictureList,
     ShareDialog,
   },
+  mixins: [picture],
   data: () => ({
     containerHeight: [10],
     data: [],
@@ -189,15 +191,13 @@ export default {
         } else {
           this.refreshData()
         }
-        const { data, meta } = await index(params)
+        const { data, meta, like } = await index(params)
         this.current_page = meta.current_page
         if (reset) {
           this.$vuetify.goTo(0)
         }
-        // if (data.length > 0) {
-        //   await this.layout(data, this.current_page)
-        // }
         this.data.push({ page: this.current_page, data })
+        this.$store.commit('like/FILL_PICTURE', like)
         if (meta.current_page === meta.last_page || data.length <= 0) {
           this.noMoreData = true
         }

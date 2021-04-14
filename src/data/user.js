@@ -36,12 +36,12 @@ export const menu = [
       {
         title: '上传的',
         icon: 'mdi-file-upload',
-        handler: '',
+        handler: { name: 'UserPicture' },
       },
       {
         title: '赞过',
         icon: 'mdi-thumb-up',
-        handler: '',
+        handler: { name: 'UserPicture', params: { type: 'liked' } },
       },
     ],
   },
