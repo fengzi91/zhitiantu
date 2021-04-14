@@ -20,6 +20,12 @@ export default {
           component: () =>
             import(/* webpackChunkName: "user" */ '@/views/user/collect'),
         },
+        {
+          path: 'picture/:type?',
+          name: 'UserPicture',
+          component: () =>
+            import(/* webpackChunkName: "user" */ '@/views/user/picture'),
+        },
       ],
     },
     {

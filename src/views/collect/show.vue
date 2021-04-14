@@ -56,18 +56,67 @@
           <div class="tw-my-md-8 tw-my-0 tw-mt-8 tw-bg-gradient-to-b ">
             <v-slide-y-transition mode="out-in">
               <template v-if="!isEditing">
-                <v-card-title
-                  v-if="collect.title"
-                  key="title"
-                  @click="setEditing"
-                  >{{ collect.title }}</v-card-title
-                >
-                <v-card-title
-                  v-else-if="canEdit"
-                  key="title"
-                  @click="setEditing"
-                  >创建于 {{ collect.created_at }}</v-card-title
-                >
+                <div class="tw-flex tw-justify-between">
+                  <div>
+                    <v-card-title
+                      v-if="collect.title"
+                      key="title"
+                      @click="setEditing"
+                      >{{ collect.title }}</v-card-title
+                    >
+                    <v-card-title
+                      v-else-if="canEdit"
+                      key="title"
+                      @click="setEditing"
+                      >创建于 {{ collect.created_at }}</v-card-title
+                    >
+                    <div class="tw-mx-4 tw-flex">
+                      <div class="tw-flex tw-items-center">
+                        <v-btn
+                          icon
+                          @click="like"
+                          :loading="
+                            $store.state.like.collect[collect.link] &&
+                              $store.state.like.collect[collect.link].loading
+                          "
+                          :color="
+                            $store.state.like.collect[collect.link] &&
+                            $store.state.like.collect[collect.link].liked
+                              ? 'primary'
+                              : null
+                          "
+                        >
+                          <v-icon>mdi-thumb-up</v-icon>
+                        </v-btn>
+                        <span class="tw-text-gray-400 tw-ml-1">{{
+                          $store.state.like.collect[collect.link]
+                            ? $store.state.like.collect[collect.link].count
+                            : collect.likers_count || 0
+                        }}</span>
+                      </div>
+                      <!--                      <v-btn icon>-->
+                      <!--                        <v-icon>mdi-view-compact-outline</v-icon>-->
+                      <!--                      </v-btn>-->
+                      <!--                      <v-btn icon>-->
+                      <!--                        <v-icon>mdi-view-grid-outline</v-icon>-->
+                      <!--                      </v-btn>-->
+                    </div>
+                  </div>
+                  <v-spacer></v-spacer>
+                  <div class="tw-flex tw-items-center tw-mr-4">
+                    <v-avatar>
+                      <v-img :src="collect.user.profile_photo_url"></v-img>
+                    </v-avatar>
+                    <div class="tw-ml-2 tw-flex tw-flex-col">
+                      <span class="tw-font-medium">{{
+                        collect.user.name
+                      }}</span>
+                      <span class="tw-text-sm tw-text-gray-400"
+                        >创建于 {{ collect.created_at }}</span
+                      >
+                    </div>
+                  </div>
+                </div>
               </template>
               <template v-if="isEditing">
                 <div class="ml-4" key="input">
@@ -86,28 +135,6 @@
               </template>
             </v-slide-y-transition>
           </div>
-          <div class="tw-m-4 tw-flex">
-            <div class="tw-flex tw-col-span-2">
-              <v-avatar>
-                <v-img :src="collect.user.profile_photo_url"></v-img>
-              </v-avatar>
-              <div class="tw-ml-2 tw-flex tw-flex-col tw-justify-between">
-                <span class="tw-font-medium tw-flex-grow tw-mt-auto">{{
-                  collect.user.name
-                }}</span>
-                <span class="tw-text-sm tw-text-gray-400 tw-align-baseline"
-                  >创建于 {{ collect.created_at }}</span
-                >
-              </div>
-            </div>
-            <div class="tw-flex tw-items-end tw-ml-8">
-              <v-btn icon>
-                <v-icon>mdi-thumb-up</v-icon>
-              </v-btn>
-              {{ collect.likers_count }}
-            </div>
-          </div>
-          <v-divider></v-divider>
           <picture-list
             :prent-data="data"
             :width="containerWidth"
@@ -271,9 +298,21 @@ export default {
         if (data.pictures.length > 0) {
           this.data.push({ page: 1, data: data.pictures })
         }
+        this.$store.dispatch('like/setCount', {
+          id: data.link,
+          count: data.likers_count,
+          type: 'collect',
+        })
+        if (data.password) {
+          this.editPassword = data.password
+        }
       } catch (e) {
         if (e.response && e.response.status === 403) {
           this.needPassword()
+        } else if (e.response && e.response.status === 404) {
+          this.$router.replace({
+            name: 'NotFound',
+          })
         }
       } finally {
         this.loading = false
@@ -307,6 +346,12 @@ export default {
         })
         this.$store.commit('collect/SET_EDITING', true)
       }
+    },
+    async like() {
+      await this.$store.dispatch('like/like', {
+        id: this.collect.link,
+        type: 'collect',
+      })
     },
   },
 }

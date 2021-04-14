@@ -1,8 +1,8 @@
 export default {
-  path: '/preview/:id',
+  path: '/pictures/:id',
   name: 'preview',
   component: () =>
-    import(/* webpackChunkName: "picture" */ '@/views/picture/show'),
+    import(/* webpackChunkName: "picture" */ '@/views/picture/detail'),
   meta: {
     navigation: false,
   },

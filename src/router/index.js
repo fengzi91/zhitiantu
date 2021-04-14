@@ -62,7 +62,8 @@ const router = new VueRouter({
       from.name === 'preview' &&
       top !== 0
     ) {
-      const scrollTop = savedPosition.y + store.state.picture.scrollTop
+      const scrollTop =
+        store.state.picture.initScrollTop + store.state.picture.scrollTop
       return {
         x: 0,
         y: scrollTop,
@@ -80,6 +81,9 @@ router.beforeEach((to, from, next) => {
   const isLoggedIn = store.state.auth.loggedIn
   if (to.fullPath.indexOf('/auth') > -1 && isLoggedIn) {
     return
+  }
+  if (to.name === 'preview' && from.name !== 'preview') {
+    store.commit('global/SET_PREVIEW_PICTURE_BACK_TO', from.fullPath)
   }
   // if (
   //   to.matched.some(

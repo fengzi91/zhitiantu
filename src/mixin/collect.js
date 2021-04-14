@@ -61,7 +61,7 @@ export default {
       this.loading = true
       try {
         const params = this.getFetchParams(reset)
-        const { data, meta } = await fetchIndex(params)
+        const { data, meta, liked } = await fetchIndex(params)
         this.current_page = meta.current_page
         if (meta.current_page === meta.last_page || data.length <= 0) {
           this.noMoreData = true
@@ -73,6 +73,13 @@ export default {
         this.$store.commit('like/FILL_COLLECT', data)
         this.data = this.data.concat(newData)
         this.loadDataError = false
+        liked.forEach(k => {
+          this.$store.dispatch('like/setIsLiked', {
+            id: Object.keys(k)[0],
+            type: 'collect',
+            liked: k[Object.keys(k)[0]],
+          })
+        })
       } catch (e) {
         this.loadDataError = true
       } finally {

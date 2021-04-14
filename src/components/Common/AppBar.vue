@@ -70,18 +70,18 @@
         </template>
         <span>通过邮件或者链接分享</span>
       </v-tooltip>
+      <!--      <v-tooltip bottom>-->
+      <!--        <template v-slot:activator="{ on, attrs }">-->
+      <!--          <v-btn text icon v-bind="attrs" v-on="on">-->
+      <!--            <v-icon>mdi-bookmark-outline</v-icon>-->
+      <!--          </v-btn>-->
+      <!--        </template>-->
+      <!--        <span>收藏这些图片</span>-->
+      <!--      </v-tooltip>-->
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-btn text icon v-bind="attrs" v-on="on">
-            <v-icon>mdi-bookmark-outline</v-icon>
-          </v-btn>
-        </template>
-        <span>收藏这些图片</span>
-      </v-tooltip>
-      <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn text icon v-bind="attrs" v-on="on">
-            <v-icon>mdi-heart-outline</v-icon>
+            <v-icon>mdi-thumb-up</v-icon>
           </v-btn>
         </template>
         <span>给这些图片点赞</span>

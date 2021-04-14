@@ -308,7 +308,7 @@ export default {
       this.$store.commit('picture/SET_INIT_DATA', { section: i, index })
       this.$router.push({
         name: 'preview',
-        params: { id: 'dsaczxcuirewurhsfkjdshfsdjk' },
+        params: { id: item.uuid },
       })
     },
     check(i, index) {

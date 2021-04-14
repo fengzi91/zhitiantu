@@ -4,6 +4,7 @@ const state = {
   fillHeight: false,
   navigationDrawer: false,
   navigationDrawerMini: false,
+  previewBackTo: '/',
 }
 
 const mutations = {
@@ -33,6 +34,9 @@ const mutations = {
   },
   TOGGLE_NAVIGATION_DRAWER_MINI(state) {
     state.navigationDrawerMini = !state.navigationDrawerMini
+  },
+  SET_PREVIEW_PICTURE_BACK_TO(state, path) {
+    state.previewBackTo = path
   },
 }
 

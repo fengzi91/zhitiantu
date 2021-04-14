@@ -39,9 +39,14 @@ service.interceptors.response.use(
           break
 
         case 401:
-          if (error.response.config.url !== 'me') {
+          if (
+            error.response.config.url !== 'me' &&
+            error.response.config.url.indexOf('/like') < 0
+          ) {
             messageError('未授权，请重新登录')
             router.push('/auth/login')
+          } else if (error.response.config.url.indexOf('/like') >= 0) {
+            messageError('请登录后再进行点赞操作！')
           }
           break
 
